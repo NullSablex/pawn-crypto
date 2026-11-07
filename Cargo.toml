@@ -1,0 +1,31 @@
+[package]
+name = "pawn-crypto"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.99.1"
+description = "Cryptography plugin for SA-MP and open.mp, built with rust-samp."
+authors = ["NullSablex <https://github.com/NullSablex>"]
+repository = "https://github.com/NullSablex/pawn-crypto"
+publish = false
+
+[lib]
+name = "pawn_crypto"
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+samp = { package = "rust-samp", version = "3.6.0", features = ["compression"] }
+sha2 = { version = "0.11", default-features = false, features = ["zeroize"] }
+hmac = { version = "0.13", features = ["zeroize"] }
+zeroize = { version = "1", default-features = false, features = ["alloc"] }
+argon2 = { version = "0.6", features = ["zeroize"] }
+
+[features]
+samp-only = ["samp/samp-only"]
+
+[package.metadata.samp]
+uid = "0xa78b1295c04e63df"
+
+[profile.release]
+lto = "thin"
+codegen-units = 1
+strip = true

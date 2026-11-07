@@ -1,0 +1,44 @@
+name: Bug report
+description: Report incorrect plugin behavior.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Never include real passwords, HMAC keys or stored password hashes. Use synthetic test data.
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual behavior
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Include the Pawn call, callback signatures and reproduction steps.
+      render: pawn
+    validations:
+      required: true
+  - type: dropdown
+    id: server
+    attributes:
+      label: Server and loading mode
+      options:
+        - open.mp native component
+        - open.mp legacy plugin
+        - SA-MP plugin
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Plugin, server and operating system versions
+      description: Include the plugin commit if building from source.
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant diagnostics
+      description: Remove secrets and unrelated server information.
+      render: text

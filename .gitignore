@@ -1,0 +1,8 @@
+/target/
+/dist/
+/.claude/
+/logs/
+*.amx
+
+# Python tooling
+__pycache__/

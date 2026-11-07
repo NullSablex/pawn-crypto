@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>pawn-crypto dependency licenses</title>
+  <style>
+    body { font: 16px/1.5 system-ui, sans-serif; max-width: 72rem; margin: 2rem auto; padding: 0 1rem; }
+    pre { white-space: pre-wrap; overflow-wrap: anywhere; padding: 1rem; background: #f4f4f4; }
+  </style>
+</head>
+<body>
+  <h1>pawn-crypto dependency licenses</h1>
+  <p>Targets: i686-unknown-linux-gnu and i686-pc-windows-msvc. Includes transitive, build and development dependencies.</p>
+  <p>This inventory does not assign a license to pawn-crypto. For dependencies with alternative licenses, it shows the selection made by about.toml.</p>
+  <p>The offline scan may synthesize standard license texts for packages with missing or unrecognized license files. Review original copyright notices before using this inventory as redistribution notices.</p>
+  <h2>Overview</h2>
+  <ul>
+    {{#each overview}}
+    <li><a href="#{{id}}">{{name}}</a> ({{count}})</li>
+    {{/each}}
+  </ul>
+  {{#each licenses}}
+  <section>
+    {{#if first_of_kind}}<h2 id="{{id}}">{{name}}</h2>{{/if}}
+    <h3>Used by</h3>
+    <ul>
+      {{#each used_by}}
+      <li>{{crate.name}} {{crate.version}}</li>
+      {{/each}}
+    </ul>
+    <pre>{{text}}</pre>
+  </section>
+  {{/each}}
+</body>
+</html>

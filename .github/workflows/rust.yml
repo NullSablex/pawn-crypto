@@ -1,0 +1,96 @@
+name: Rust
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: rust-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  check:
+    name: Build and test (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            target: i686-unknown-linux-gnu
+            artifact: target/i686-unknown-linux-gnu/release/libpawn_crypto.so
+            extension: so
+          - os: windows-latest
+            target: i686-pc-windows-msvc
+            artifact: target/i686-pc-windows-msvc/release/pawn_crypto.dll
+            extension: dll
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install pinned Rust toolchain and target
+        run: |
+          rustup show
+          rustup target add ${{ matrix.target }}
+      - name: Install Linux linker
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-multilib
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+      - name: Build release
+        run: cargo build --locked --release --target ${{ matrix.target }}
+      - name: Unit tests
+        run: cargo test --locked --target ${{ matrix.target }} --lib
+      - name: Clippy
+        run: cargo clippy --locked --target ${{ matrix.target }} --all-targets -- -D warnings
+      - name: Check SA-MP-only configuration
+        run: cargo clippy --locked --target ${{ matrix.target }} --all-targets --features samp-only -- -D warnings
+      - name: Check generated includes and lockfile
+        run: git diff --exit-code -- include/ Cargo.lock
+      - name: Prepare plugin artifact
+        shell: bash
+        run: |
+          mkdir -p dist
+          cp "${{ matrix.artifact }}" "dist/pawn_crypto.${{ matrix.extension }}"
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: pawn-crypto-${{ matrix.target }}
+          if-no-files-found: error
+          path: |
+            dist/pawn_crypto.${{ matrix.extension }}
+            include/crypto.inc
+            include/crypto_omp.inc
+
+  licenses:
+    name: Dependency licenses
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - run: rustup show
+      - uses: taiki-e/install-action@dfae9bf3d6f6c6f20ef4ebb3486c01a51341ff12 # v2.87.18
+        with:
+          tool: cargo-about@0.9.2
+      - name: Fetch locked dependency sources
+        run: cargo fetch --locked
+      - run: ./scripts/licenses.sh
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: dependency-licenses
+          if-no-files-found: error
+          path: |
+            dist/licenses.json
+            dist/THIRD-PARTY-LICENSES.html

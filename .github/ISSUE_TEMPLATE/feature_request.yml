@@ -1,0 +1,21 @@
+name: Feature request
+description: Propose a cryptographic operation or API improvement.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use case
+      description: Explain what you need to accomplish and the current limitation.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Include a Pawn usage sketch if useful.
+  - type: textarea
+    id: dependencies
+    attributes:
+      label: Implementation references
+      description: Optional library, specification or license information.
