@@ -112,8 +112,8 @@ server remain separate from this Linux open.mp check.
 - Pawn files use ASCII, LF and no BOM. Document every native with `@param` and
   `@return`; use `bool:` for boolean results and `sizeof(output)` for buffers.
 - Keep `Cargo.toml` as the source of the package version; generated includes
-  carry it automatically. Update the pending pre-release entry in
-  [CHANGELOG.md](CHANGELOG.md) while the initial release is being prepared.
+  carry it automatically. Record user-visible changes in
+  [CHANGELOG.md](CHANGELOG.md).
 - Use established cryptographic libraries and known-answer tests. Preserve raw
   Pawn bytes and use explicit conversions between numeric types.
 - Keep expensive work off the server thread. Use rust-samp's main-thread queue,
@@ -136,9 +136,8 @@ independent.
 
 Describe the problem, resulting behavior, verification and remaining limitations
 in the pull request. Do not report checks that were not run. Tags and releases
-require maintainer approval of the version and changelog before publication.
-See [the release guide](docs/releases.md) for tag validation, release channels
-and packages.
+require maintainer approval of the version and changelog before publication;
+see [Releases](#releases).
 
 ## CI
 
@@ -156,11 +155,43 @@ the theme. Edit native
 JavaDoc in the include template, build the plugin, then run
 `cargo xtask gen-api`. The generated API page is committed so it
 also renders directly on GitHub. Run the generator with `--check` and build the
-site with `cargo xtask docs` before submitting documentation changes. See
-[the documentation build guide](docs/building.md#documentation-site) for the
-documentation build and preview commands.
+site with `cargo xtask docs` before submitting documentation changes.
+
+```sh
+cargo xtask gen-api            # regenerate docs/api-reference.md
+cargo xtask docs               # strict build into dist/docs/ with link checks
+uv tool run --python 3.13 --from "$(cat requirements-docs.txt)" zensical serve
+```
+
+Zensical is pinned in `requirements-docs.txt` and runs through `uv`. The Rust
+tooling under `xtask/` is locked separately in `xtask/Cargo.lock`; review its
+licenses with `cargo about generate --offline --locked --fail --config about.toml
+--manifest-path xtask/Cargo.toml --format json --output-file dist/tooling-licenses.json`.
 
 CodeQL is configured for Rust and Actions. It runs automatically for public
 repositories. For a private repository, enable `ENABLE_CODEQL=true` only after
 CodeQL entitlement and code scanning are available. Repository access settings,
 branch protection and vulnerability-reporting settings are managed separately.
+
+## Releases
+
+`Cargo.toml` holds the version. A tag is exactly `v` plus that version, and
+`CHANGELOG.md` has exactly one matching entry: `## [VERSION] - YYYY/MM/DD -
+Pre-release` for SemVer pre-releases (`-alpha.1`, `-rc.1`), `## [VERSION]` or
+`## [VERSION] - YYYY/MM/DD` for stable ones. A stable entry describes the result
+since the previous stable release, without candidate entries. Published tags and
+versions are never reused or rewritten.
+
+Preview the notes locally; this neither tags nor publishes:
+
+```sh
+cargo xtask prepare-release --tag vVERSION --channel prerelease --out dist/release
+```
+
+After the maintainer approves version, channel and changelog, push a signed tag.
+`release.yml` validates the tag, reuses the Rust CI builds and attaches only
+`pawn_crypto.so`, `pawn_crypto.dll`, both includes,
+`THIRD-PARTY-LICENSES.html` and `SHA256SUMS`. A failed run can be retried
+from Actions with the existing tag. Assets already published are never
+overwritten: a digest mismatch stops the run.
+

@@ -87,46 +87,6 @@ in native and legacy modes. The runner uses only standard server components,
 creates its own configuration, binds to loopback and retains logs under its
 temporary workspace. It does not use your server's configuration or credentials.
 
-## Documentation site
-
-Documentation uses Zensical, pinned in `requirements-docs.txt`. Install `uv`,
-then build and validate the documentation from the repository root:
-
-```sh
-cargo xtask docs
-uv tool run --python 3.13 --from "$(cat requirements-docs.txt)" zensical serve
-```
-
-`cargo xtask docs` checks API freshness, runs Zensical in strict mode, and
-validates local Markdown targets and rendered anchors. The output is
-`dist/docs/`; the preview server uses the same configuration. `uv` runs the
-pinned generator in an isolated tool environment with a Python 3.13 runtime.
-The documentation workflow uploads the generated files as an artifact. After
-successful builds on `master`, it publishes them to
-[GitHub Pages](https://nullsablex.github.io/pawn-crypto/). Pull requests only
-build and validate the documentation.
-
-The API page is generated from `include/crypto.inc` and `crypto_omp.inc`. After
-editing a native's include documentation and building the plugin, regenerate it:
-
-```sh
-cargo xtask gen-api
-cargo xtask gen-api --check
-```
-
-The generator is part of the standalone Rust tooling crate under `xtask/`.
-Its dependencies are locked in `xtask/Cargo.lock`, independently of the plugin.
-CI checks the committed reference, which also renders directly on GitHub.
-Navigation, repository links, colors and light/dark themes are configured in
-`zensical.toml`. Documentation pages remain Markdown files under `docs/`.
-
-The Pawn runner also accepts `--docs` to compile complete Pawn examples in the
-README and guides. Validation, reference generation and runtime tests use Rust
-through `cargo xtask`.
-
-## Contributing
-
-See [CONTRIBUTING.md](https://github.com/NullSablex/pawn-crypto/blob/master/CONTRIBUTING.md)
-for module layout, native registration, commit conventions and pull request
-requirements. Package version changes start in `Cargo.toml`; do not duplicate
-the current version in documentation.
+Contributor tooling (documentation site, API reference generation, release
+preparation) is described in
+[CONTRIBUTING.md](https://github.com/NullSablex/pawn-crypto/blob/master/CONTRIBUTING.md).

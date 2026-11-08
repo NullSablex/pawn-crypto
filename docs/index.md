@@ -4,12 +4,11 @@ pawn-crypto provides cryptographic primitives to Pawn scripts on SA-MP and
 open.mp. Its default binary works as a legacy plugin or a native open.mp
 component. The API uses `crypto.inc`; `crypto_omp.inc` exposes PascalCase aliases.
 
-The initial pre-release is in preparation on `master`. Its API and behavior may
-change before a stable release. See the
+The project is in pre-release: the API and behavior may change before a stable
+release. Downloads are on the
+[releases page](https://github.com/NullSablex/pawn-crypto/releases); the
 [changelog](https://github.com/NullSablex/pawn-crypto/blob/master/CHANGELOG.md)
-for the current scope and
-[Cargo.toml](https://github.com/NullSablex/pawn-crypto/blob/master/Cargo.toml)
-for the package version.
+lists what each version contains.
 
 ## Choose an operation
 
@@ -24,8 +23,8 @@ worker pool; results return through callbacks on the server thread.
 
 ## Get started
 
-[Build the binaries](building.md), then follow the
-[installation guide](installation.md). The guides contain runnable filterscript
+Download a release and follow the [installation guide](installation.md), or
+[build from source](building.md). The guides contain runnable filterscript
 examples, while the [API reference](api-reference.md) lists all native signatures,
 parameters, aliases and constants from the generated includes.
 

@@ -97,12 +97,9 @@ jobs:
       - name: Inventory dependency licenses
         run: |
           mkdir -p dist
-          cargo about generate --offline --locked --fail --format json --output-file dist/licenses.json
           cargo about generate --offline --locked --fail about.hbs --output-file dist/THIRD-PARTY-LICENSES.html
       - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
         with:
           name: dependency-licenses
           if-no-files-found: error
-          path: |
-            dist/licenses.json
-            dist/THIRD-PARTY-LICENSES.html
+          path: dist/THIRD-PARTY-LICENSES.html

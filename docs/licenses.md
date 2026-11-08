@@ -26,7 +26,7 @@ cargo about generate --offline --locked --fail about.hbs --output-file dist/THIR
 ```
 
 Install `cargo-about` first if needed with `cargo install cargo-about --locked`.
-The commands above and the CI license job produce these reports:
+The commands above produce these reports; each release attaches the HTML one:
 
 | Output | Contents |
 | --- | --- |
@@ -54,18 +54,3 @@ The offline scan uses packaged local sources. Some packages omit a license file
 or have text the tool cannot identify, so standard license texts may be
 synthesized. This inventory supports review; original copyright notices still
 need checking before using it as redistribution attribution material.
-
-The Rust maintenance tools are locked separately in `xtask/Cargo.lock`. Zensical
-is a separate documentation build tool, pinned in `requirements-docs.txt`.
-Neither is linked into the plugin or
-included in its binary dependency inventory.
-
-Review the locked maintenance dependencies separately with the same policy:
-
-```sh
-cargo fetch --locked --manifest-path xtask/Cargo.toml
-cargo about generate --offline --locked --fail --config about.toml --manifest-path xtask/Cargo.toml --format json --output-file dist/tooling-licenses.json
-```
-
-The current maintenance inventory selects MIT. These selections describe the
-reviewed dependency graph, separately from the project's Apache-2.0 license.

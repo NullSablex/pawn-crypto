@@ -1,23 +1,23 @@
 # Installation
 
-The initial pre-release has not been published yet. Build from source using
-the instructions below; the API may change before a stable release.
+## Download
 
-## Files
+Each [release](https://github.com/NullSablex/pawn-crypto/releases) attaches
+the 32-bit (x86) plugin binaries and the Pawn includes:
 
-The build scripts produce these 32-bit binaries:
-
-| System | Binary |
+| File | Use |
 | --- | --- |
-| Linux GNU x86 | `dist/pawn_crypto.so` |
-| Windows MSVC x86 | `dist/pawn_crypto.dll` |
+| `pawn_crypto.so` | Linux GNU x86 plugin. |
+| `pawn_crypto.dll` | Windows MSVC x86 plugin. |
+| `crypto.inc` / `crypto_omp.inc` | Pawn includes (snake_case or PascalCase). |
+| `THIRD-PARTY-LICENSES.html` | Licenses of the dependencies compiled into the plugin. |
 
-See [building from source](building.md) for prerequisites and commands. Match the
-binary to the server operating system and architecture. Build validation does
-not replace runtime validation on a particular server version.
+`SHA256SUMS` lists their checksums; verify with
+`sha256sum -c SHA256SUMS --ignore-missing`. To compile the binaries yourself,
+see [building from source](building.md).
 
-Copy `include/crypto.inc` to your Pawn compiler's include directory, or add the
-project's `include/` directory to its include search path. Choose one loading
+Copy `crypto.inc` to your Pawn compiler's include directory, such as
+`pawno/include/` or `qawno/include/`. Choose one loading
 mode per server; do not load the same binary through two modes.
 
 ## SA-MP plugin

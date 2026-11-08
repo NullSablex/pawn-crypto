@@ -23,7 +23,6 @@ nav = [
   { "Reference" = [
     { "Native API" = "api-reference.md" },
     { "Build and validation" = "building.md" },
-    { "Releases and pre-releases" = "releases.md" },
     { "Dependency licenses" = "licenses.md" },
   ] },
 ]

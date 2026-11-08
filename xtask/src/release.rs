@@ -72,10 +72,9 @@ pub fn run(args: &[String]) -> Result<()> {
         "{body}\n\n### Downloads\n\n\
          - `pawn_crypto.so`: Linux GNU x86.\n\
          - `pawn_crypto.dll`: Windows MSVC x86.\n\
-         - `crypto.inc` and `crypto_omp.inc`: alternative Pawn naming styles.\n\
-         - Platform archives: binary, includes, documentation, examples and licenses.\n\
-         - `licenses.json` and `THIRD-PARTY-LICENSES.html`: dependency inventories.\n\
-         - `SHA256SUMS`: checksums of the downloadable assets.\n\n\
+         - `crypto.inc` and `crypto_omp.inc`: Pawn includes (snake_case or PascalCase).\n\
+         - `THIRD-PARTY-LICENSES.html`: licenses of the dependencies compiled into the plugin.\n\
+         - `SHA256SUMS`: checksums of the files above.\n\n\
          [Installation guide]({repository}/blob/{tag}/docs/installation.md).\n"
     );
     let output = Path::new(&args[5]);

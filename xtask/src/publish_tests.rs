@@ -13,12 +13,8 @@ const ASSETS: &[&str] = &[
     "pawn_crypto.dll",
     "crypto.inc",
     "crypto_omp.inc",
-    "LICENSE",
-    "licenses.json",
     "THIRD-PARTY-LICENSES.html",
     "SHA256SUMS",
-    "pawn-crypto-v0.1.0-alpha.1-linux-x86.tar.gz",
-    "pawn-crypto-v0.1.0-alpha.1-windows-x86.zip",
 ];
 
 struct Fixture(PathBuf);

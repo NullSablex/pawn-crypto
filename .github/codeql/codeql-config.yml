@@ -1,0 +1,7 @@
+name: pawn-crypto CodeQL config
+
+# Unit tests hold published known-answer vectors (RFC 4231 HMAC keys, the
+# upstream Argon2id password). They are test data, not secrets, and would
+# otherwise be reported as hard-coded cryptographic values.
+paths-ignore:
+  - src/**/tests.rs

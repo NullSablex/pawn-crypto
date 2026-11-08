@@ -49,8 +49,8 @@ normalização de texto. HMAC e Argon2id são operações distintas: use a
 
 ## Instalação
 
-1. Obtenha `pawn_crypto.so` para Linux ou `pawn_crypto.dll` para Windows, junto
-   com o include Pawn, em [Releases](https://github.com/NullSablex/pawn-crypto/releases),
+1. Baixe `pawn_crypto.so` (Linux) ou `pawn_crypto.dll` (Windows) e
+   `crypto.inc` em [Releases](https://github.com/NullSablex/pawn-crypto/releases),
    ou [compile a partir do código-fonte](docs/building.md).
 2. Copie `crypto.inc` para seu diretório de includes Pawn, como `pawno/include/`
    ou `qawno/include/`.
@@ -99,7 +99,6 @@ ou consulte a [visão geral em Markdown](docs/index.md) no GitHub. Os guias est�
 | [Erros](docs/errors.md) | Falhas de submissão, resultados de callbacks e diagnóstico de problemas. |
 | [Segurança](docs/security.md) | Tratamento de dados, segredos e responsabilidades da aplicação. |
 | [Compilação](docs/building.md) | Toolchain, scripts de build e comandos de validação. |
-| [Releases](docs/releases.md) | Preparação e empacotamento de releases e pré-releases. |
 | [Licenças das dependências](docs/licenses.md) | Inventários do cargo-about e avisos de terceiros. |
 
 ## Exemplos
