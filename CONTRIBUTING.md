@@ -100,7 +100,8 @@ server remain separate from this Linux open.mp check.
 
 - Keep Rust code, logs, includes and documentation in en-US.
 - Use Rust (`cargo xtask`) for validation, generation and test tooling. Do not
-  add Python scripts or dependencies.
+  add Python scripts. Zensical's runtime is used only to build documentation;
+  its package version is pinned in `requirements-docs.txt`.
 - Define plugin state and lifecycle in `src/plugin.rs`; group native implementations
   by domain under `src/natives/`. Keep `src/lib.rs` focused on registration.
 - Add a native to its Rust module, the registration list, the include template
@@ -144,16 +145,18 @@ GitHub Actions checks Linux GNU and Windows MSVC builds, unit tests, Clippy,
 formatting, generated includes, Pawn encoding and dependency licenses. Pull
 requests also check DCO sign-offs for commit authors and co-authors. A separate
 workflow runs RustSec audits on changes and weekly. The docs workflow checks
-the generated API reference and builds mdBook with link validation. Dependabot
-tracks Cargo dependencies in the plugin and xtask, and GitHub Actions.
+the generated API reference and builds Zensical in strict mode with link
+validation. Dependabot tracks Cargo dependencies in the plugin and xtask,
+GitHub Actions and the pinned Zensical package.
 
-Documentation source lives in `docs/`; `docs/SUMMARY.md` defines navigation. Edit native
+Documentation source lives in `docs/`; `zensical.toml` defines navigation and
+the theme. Edit native
 JavaDoc in the include template, build the plugin, then run
 `cargo xtask gen-api`. The generated API page is committed so it
 also renders directly on GitHub. Run the generator with `--check` and build the
 site with `cargo xtask docs` before submitting documentation changes. See
 [the documentation build guide](docs/building.md#documentation-site) for the
-Rust documentation tools and preview commands.
+documentation build and preview commands.
 
 CodeQL is configured for Rust and Actions. It runs automatically for public
 repositories. For a private repository, enable `ENABLE_CODEQL=true` only after

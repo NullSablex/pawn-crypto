@@ -166,7 +166,7 @@ pub fn generate(check: bool) -> Result<()> {
     Ok(())
 }
 
-fn links(rendered: bool) -> Result<()> {
+fn links(rendered: Option<&std::path::Path>) -> Result<()> {
     let docs_root = root().join("docs").canonicalize()?;
     let mut pages = files(&docs_root, "md")?;
     pages.extend([root().join("README.md"), root().join("CONTRIBUTING.md")]);
@@ -187,10 +187,10 @@ fn links(rendered: bool) -> Result<()> {
                 if !target.is_file() {
                     return Err(format!("{}: missing link target {url}", page.display()).into());
                 }
-                if rendered && !anchor.is_empty() {
+                if let Some(output) = rendered.filter(|_| !anchor.is_empty()) {
                     let target = target.canonicalize()?;
                     if let Ok(relative) = target.strip_prefix(&docs_root) {
-                        let html = root().join("site").join(relative).with_extension("html");
+                        let html = output.join(relative).with_extension("html");
                         if !ids
                             .captures_iter(&read(&html)?)
                             .any(|cap| &cap[1] == anchor)
@@ -209,23 +209,39 @@ fn links(rendered: bool) -> Result<()> {
 
 pub fn build() -> Result<()> {
     generate(true)?;
-    links(false)?;
-    let result = Command::new("mdbook")
-        .arg("build")
-        .arg(root())
-        .env("RUST_LOG", "info")
+    links(None)?;
+    let config_path = root().join("zensical.toml");
+    let config: toml::Value = toml::from_str(&read(&config_path)?)?;
+    let output = root().join(
+        config["project"]["site_dir"]
+            .as_str()
+            .ok_or("zensical.toml must define project.site_dir")?,
+    );
+    let requirement = read(&root().join("requirements-docs.txt"))?;
+    let result = Command::new("uv")
+        .args([
+            "tool",
+            "run",
+            "--python",
+            "3.13",
+            "--from",
+            requirement.trim(),
+            "zensical",
+            "build",
+            "--strict",
+            "--config-file",
+        ])
+        .arg(&config_path)
+        .current_dir(root())
         .output()
-        .map_err(|error| format!("mdbook: {error}; install mdbook 0.5.4"))?;
+        .map_err(|error| format!("uv: {error}; install uv to run Zensical"))?;
     let diagnostics = String::from_utf8_lossy(&result.stderr);
     eprint!("{diagnostics}");
-    if !result.status.success()
-        || diagnostics
-            .lines()
-            .any(|line| line.contains(" WARN ") || line.contains("[WARN"))
-    {
+    print!("{}", String::from_utf8_lossy(&result.stdout));
+    if !result.status.success() {
         return Err("documentation build failed or reported warnings".into());
     }
-    links(true)?;
+    links(Some(&output))?;
     println!("Documentation built; source links and rendered anchors verified.");
     Ok(())
 }

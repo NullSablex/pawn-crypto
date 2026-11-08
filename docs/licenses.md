@@ -55,8 +55,9 @@ or have text the tool cannot identify, so standard license texts may be
 synthesized. This inventory supports review; original copyright notices still
 need checking before using it as redistribution attribution material.
 
-The Rust maintenance tools are locked separately in `xtask/Cargo.lock`. mdBook
-is a separate documentation build tool. Neither is linked into the plugin or
+The Rust maintenance tools are locked separately in `xtask/Cargo.lock`. Zensical
+is a separate documentation build tool, pinned in `requirements-docs.txt`.
+Neither is linked into the plugin or
 included in its binary dependency inventory.
 
 Review the locked maintenance dependencies separately with the same policy:

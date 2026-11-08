@@ -1,0 +1,59 @@
+[project]
+site_name = "pawn-crypto"
+site_description = "Cryptography plugin for SA-MP and Open Multiplayer, written in Rust."
+site_author = "NullSablex"
+copyright = "Copyright &copy; 2026 NullSablex"
+repo_name = "NullSablex/pawn-crypto"
+repo_url = "https://github.com/NullSablex/pawn-crypto"
+edit_uri = "edit/master/docs/"
+docs_dir = "docs"
+site_dir = "dist/docs"
+use_directory_urls = false
+nav = [
+  { "Home" = "index.md" },
+  { "Installation" = "installation.md" },
+  { "Guide" = [
+    { "SHA-2 hashing" = "hashing.md" },
+    { "HMAC authentication" = "hmac.md" },
+    { "Argon2id passwords" = "passwords.md" },
+    { "Errors and troubleshooting" = "errors.md" },
+    { "Security and data handling" = "security.md" },
+  ] },
+  { "Reference" = [
+    { "Native API" = "api-reference.md" },
+    { "Build and validation" = "building.md" },
+    { "Releases and pre-releases" = "releases.md" },
+    { "Dependency licenses" = "licenses.md" },
+  ] },
+]
+
+[project.theme]
+language = "en"
+features = [
+  "navigation.tabs",
+  "navigation.tabs.sticky",
+  "navigation.sections",
+  "navigation.top",
+  "navigation.tracking",
+  "toc.follow",
+  "search.suggest",
+  "search.highlight",
+  "content.code.copy",
+  "content.action.edit",
+]
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: light)"
+scheme = "default"
+primary = "deep orange"
+accent = "orange"
+toggle.icon = "lucide/moon"
+toggle.name = "Switch to dark mode"
+
+[[project.theme.palette]]
+media = "(prefers-color-scheme: dark)"
+scheme = "slate"
+primary = "deep orange"
+accent = "orange"
+toggle.icon = "lucide/sun"
+toggle.name = "Switch to light mode"

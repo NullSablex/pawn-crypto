@@ -5,5 +5,5 @@
 /logs/
 *.amx
 
-# Documentation build
-/site/
+# Zensical build cache
+/.cache/

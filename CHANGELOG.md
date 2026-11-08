@@ -22,6 +22,6 @@
   and OpenSSF Scorecard workflows.
 - Apache-2.0 project licensing, DCO 1.1 sign-offs, a contributor license
   agreement accepted through sign-offs, and automated pull request checks.
-- README and mdBook documentation covering installation, operations,
+- README and Zensical documentation covering installation, operations,
   asynchronous behavior, errors, security, builds and dependency licensing,
   with the native API reference generated from the documented Pawn includes.
