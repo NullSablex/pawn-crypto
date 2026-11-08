@@ -84,7 +84,8 @@ include per script; either style works on SA-MP and open.mp.
 
 ## Documentation
 
-Start with the [documentation overview](docs/index.md).
+Read the [online documentation](https://nullsablex.github.io/pawn-crypto/),
+or browse the [Markdown overview](docs/index.md) on GitHub.
 
 | Guide | Contents |
 | --- | --- |

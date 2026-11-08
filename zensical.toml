@@ -1,5 +1,6 @@
 [project]
 site_name = "pawn-crypto"
+site_url = "https://nullsablex.github.io/pawn-crypto/"
 site_description = "Cryptography plugin for SA-MP and Open Multiplayer, written in Rust."
 site_author = "NullSablex"
 copyright = "Copyright &copy; 2026 NullSablex"

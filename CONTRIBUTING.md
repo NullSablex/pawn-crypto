@@ -146,7 +146,8 @@ formatting, generated includes, Pawn encoding and dependency licenses. Pull
 requests also check DCO sign-offs for commit authors and co-authors. A separate
 workflow runs RustSec audits on changes and weekly. The docs workflow checks
 the generated API reference and builds Zensical in strict mode with link
-validation. Dependabot tracks Cargo dependencies in the plugin and xtask,
+validation. Successful builds on `master` deploy to GitHub Pages; PRs only
+validate the documentation. Dependabot tracks Cargo dependencies in the plugin and xtask,
 GitHub Actions and the pinned Zensical package.
 
 Documentation source lives in `docs/`; `zensical.toml` defines navigation and

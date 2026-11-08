@@ -101,7 +101,10 @@ uv tool run --python 3.13 --from "$(cat requirements-docs.txt)" zensical serve
 validates local Markdown targets and rendered anchors. The output is
 `dist/docs/`; the preview server uses the same configuration. `uv` runs the
 pinned generator in an isolated tool environment with a Python 3.13 runtime.
-The documentation workflow uploads the generated files as an artifact.
+The documentation workflow uploads the generated files as an artifact. After
+successful builds on `master`, it publishes them to
+[GitHub Pages](https://nullsablex.github.io/pawn-crypto/). Pull requests only
+build and validate the documentation.
 
 The API page is generated from `include/crypto.inc` and `crypto_omp.inc`. After
 editing a native's include documentation and building the plugin, regenerate it:
