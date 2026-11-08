@@ -31,6 +31,7 @@ jobs:
     outputs:
       tag: ${{ steps.metadata.outputs.tag }}
       prerelease: ${{ steps.metadata.outputs.prerelease }}
+      commit: ${{ steps.metadata.outputs.commit }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -47,6 +48,7 @@ jobs:
           cargo xtask prepare-release --tag "$RELEASE_TAG" --channel "$RELEASE_CHANNEL" --out dist/release
           test "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
           jq -r '"tag=\(.tag)\nprerelease=\(.prerelease)"' dist/release/metadata.json >> "$GITHUB_OUTPUT"
+          echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - name: Check source and Rust tooling
         run: |
           cargo xtask check-pawn
@@ -77,6 +79,7 @@ jobs:
     env:
       RELEASE_TAG: ${{ needs.validate.outputs.tag }}
       RELEASE_PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+      RELEASE_COMMIT: ${{ needs.validate.outputs.commit }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -119,13 +122,59 @@ jobs:
           assets=(dist/pawn_crypto.so dist/pawn_crypto.dll dist/crypto.inc dist/crypto_omp.inc
             dist/LICENSE dist/licenses.json dist/THIRD-PARTY-LICENSES.html dist/SHA256SUMS
             dist/pawn-crypto-*.tar.gz dist/pawn-crypto-*.zip)
-          if gh release view "$RELEASE_TAG" --json isDraft > current-release.json 2>/dev/null; then
-            jq -e '.isDraft == true' current-release.json > /dev/null
-            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
-          else
-            gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" \
-              --notes-file release-notes/notes.md "${assets[@]}"
+          fail() { printf '::error::%s\n' "$1" >&2; exit 1; }
+          case "$RELEASE_PRERELEASE" in true|false) ;; *) fail 'Invalid release channel';; esac
+          test "$(git rev-parse HEAD)" = "$RELEASE_COMMIT" || fail 'Checkout differs from the validated commit'
+          gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$RELEASE_TAG" > release-tag.json
+          while [ "$(jq -r '.object.type' release-tag.json)" = tag ]; do
+            tag_object=$(jq -r '.object.sha' release-tag.json)
+            gh api "repos/$GITHUB_REPOSITORY/git/tags/$tag_object" > release-tag.json
+          done
+          jq -e --arg commit "$RELEASE_COMMIT" '.object.type == "commit" and .object.sha == $commit' release-tag.json > /dev/null \
+            || fail 'Remote tag differs from the validated commit'
+          for asset in "${assets[@]}"; do
+            test -s "$asset" || fail "Missing or empty release asset: $asset"
+          done
+          endpoint="repos/$GITHUB_REPOSITORY/releases/tags/$RELEASE_TAG"
+          if ! gh api "$endpoint" > current-release.json 2> release-lookup.err; then
+            lookup_error=$(cat release-lookup.err)
+            if [[ "$lookup_error" != *"HTTP 404"* ]]; then
+              cat release-lookup.err >&2
+              fail 'Could not inspect the existing release'
+            fi
+            gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease="$RELEASE_PRERELEASE" \
+              --title "$RELEASE_TAG" --notes-file release-notes/notes.md
+            gh api "$endpoint" > current-release.json
           fi
+          jq -e --arg tag "$RELEASE_TAG" '.tag_name == $tag and (.draft | type == "boolean")' current-release.json > /dev/null \
+            || fail 'Unexpected release metadata'
+          if [ "$(jq -r '.draft' current-release.json)" = false ]; then
+            jq -e --argjson expected "$RELEASE_PRERELEASE" '.prerelease == $expected' current-release.json > /dev/null \
+              || fail 'Published release channel differs from the validated changelog'
+            missing=()
+            for asset in "${assets[@]}"; do
+              name=${asset##*/}
+              existing=$(jq -c --arg name "$name" '.assets[] | select(.name == $name)' current-release.json)
+              if [ -z "$existing" ]; then
+                missing+=("$asset")
+                continue
+              fi
+              checksum=$(sha256sum "$asset")
+              checksum=${checksum%% *}
+              digest=$(jq -r '.digest // ""' <<< "$existing")
+              test "$digest" = "sha256:$checksum" \
+                || fail "Published asset differs or has no verifiable SHA-256 digest: $name; refusing to overwrite"
+            done
+            if [ "${#missing[@]}" -gt 0 ]; then
+              gh release upload "$RELEASE_TAG" "${missing[@]}"
+            fi
+            if jq -e '(.body // "") == ""' current-release.json > /dev/null; then
+              gh release edit "$RELEASE_TAG" --notes-file release-notes/notes.md
+            fi
+            echo 'Published release completed; existing assets and notes preserved.'
+            exit 0
+          fi
+          gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
           latest=true
           if [ "$RELEASE_PRERELEASE" = true ]; then latest=false; fi
           gh release edit "$RELEASE_TAG" --title "$RELEASE_TAG" --notes-file release-notes/notes.md \

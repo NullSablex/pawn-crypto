@@ -1,6 +1,8 @@
 mod dco;
 mod docs;
 mod pawn;
+#[cfg(all(test, unix))]
+mod publish_tests;
 mod release;
 mod sources;
 

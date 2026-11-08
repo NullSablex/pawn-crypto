@@ -18,8 +18,8 @@
 - GitHub Actions CI, dependency audits, CodeQL configuration, Dependabot,
   issue and pull request templates, and contribution, AI usage and security policies.
 - Release and pre-release automation with version and changelog validation,
-  platform archives, dependency notices and SHA-256 checksums; Release Drafter
-  and OpenSSF Scorecard workflows.
+  platform archives, dependency notices and SHA-256 checksums, plus an OpenSSF
+  Scorecard workflow.
 - Apache-2.0 project licensing, DCO 1.1 sign-offs, a contributor license
   agreement accepted through sign-offs, and automated pull request checks.
 - English and Brazilian Portuguese READMEs, plus Zensical documentation covering

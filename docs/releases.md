@@ -43,21 +43,20 @@ The workflow validates the tagged source and reuses Rust CI to build and test
 Linux GNU x86 and Windows MSVC x86, run Clippy and inventory dependency licenses.
 It packages only the tagged commit, then publishes with `gh` after those jobs
 succeed. A pre-release is marked as such and never selected as the latest stable
-release. Existing published releases are refused; an unpublished draft may be
-completed with the validated assets and curated changelog notes.
+release. The remote tag must still point to the validated commit before any
+publication changes are made. An unpublished draft is completed with validated
+assets and curated changelog notes.
+
+A release already published through GitHub's interface can receive its missing
+assets. Its channel must match the changelog. Existing assets must have matching
+SHA-256 digests and are never overwritten. Existing notes are preserved; an empty
+body is filled from the curated notes. Lookup errors, channel mismatches and
+asset conflicts stop publication with explicit diagnostics.
 
 Downloads contain the two binaries, both include naming styles, the Apache
 license, dependency inventories and `SHA256SUMS`. Platform archives also contain
 documentation, examples and contribution policies. SHA-256 checksums detect
 content differences; they are not cryptographic signatures.
-
-## Release Drafter
-
-Release Drafter updates an unpublished PR-based draft after pushes to `master`.
-Labels group features, fixes, documentation and maintenance and suggest a next
-version. Suggestions do not update Cargo or authorize publication. Review them
-when writing the changelog; the release workflow uses the curated entry rather
-than publishing draft text automatically.
 
 Configure branch protection for `master` in the repository settings. The
 `DCO and CLA` check verifies sign-off records separately from release

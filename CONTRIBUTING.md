@@ -137,8 +137,8 @@ independent.
 Describe the problem, resulting behavior, verification and remaining limitations
 in the pull request. Do not report checks that were not run. Tags and releases
 require maintainer approval of the version and changelog before publication.
-See [the release guide](docs/releases.md) for tag validation, release channels,
-packages and the Release Drafter workflow.
+See [the release guide](docs/releases.md) for tag validation, release channels
+and packages.
 
 ## CI
 
