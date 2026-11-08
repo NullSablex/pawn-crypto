@@ -6,7 +6,8 @@
 `v` followed by that version, and `CHANGELOG.md` must contain exactly one matching
 entry. Generated Pawn includes must match the package version.
 
-Mark a pre-release entry with `## [VERSION] - Pre-release`. Stable entries use
+Mark a pre-release entry with `## [VERSION] - YYYY/MM/DD - Pre-release`; the date
+is optional. Stable entries use
 `## [VERSION]` or `## [VERSION] - YYYY/MM/DD`. Replace `VERSION` with the Cargo
 version. A SemVer prerelease suffix such as `-rc.1` also requires the pre-release
 heading. The initial pre-release uses the existing package version without

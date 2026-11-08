@@ -16,9 +16,12 @@ fn prepare(version: &str, tag: &str, channel: &str, changelog: &str) -> Result<(
         return Err("changelog must contain exactly one entry for the package version".into());
     };
     let suffix = header.strip_prefix(&prefix).unwrap();
-    let prerelease = suffix == " - Pre-release";
+    let (prerelease, suffix) = match suffix.strip_suffix(" - Pre-release") {
+        Some(date) => (true, date),
+        None => (false, suffix),
+    };
     let dated = regex::Regex::new(r"^ - [0-9]{4}/[0-9]{2}/[0-9]{2}$")?;
-    if !prerelease && !suffix.is_empty() && !dated.is_match(suffix) {
+    if !suffix.is_empty() && !dated.is_match(suffix) {
         return Err("release header must be plain, dated YYYY/MM/DD, or marked Pre-release".into());
     }
     if !prerelease && version.contains('-') {
@@ -96,6 +99,16 @@ mod tests {
         assert!(prerelease);
         assert_eq!(notes, "### Added\n\n- Hashing.");
         assert!(prepare("0.1.0", "v0.1.0", "release", changelog).is_err());
+    }
+
+    #[test]
+    fn dated_prereleases_keep_their_channel() {
+        let dated = "## [0.1.0] - 2026/11/08 - Pre-release\n\n- Hashing.\n";
+        assert!(prepare("0.1.0", "v0.1.0", "auto", dated).unwrap().0);
+        assert!(prepare("0.1.0", "v0.1.0", "prerelease", dated).is_ok());
+        assert!(prepare("0.1.0", "v0.1.0", "release", dated).is_err());
+        let malformed = "## [0.1.0] - yesterday - Pre-release\n\n- Hashing.\n";
+        assert!(prepare("0.1.0", "v0.1.0", "auto", malformed).is_err());
     }
 
     #[test]
