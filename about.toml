@@ -6,8 +6,8 @@ ignore-build-dependencies = false
 ignore-dev-dependencies = false
 ignore-transitive-dependencies = false
 
-# The project license is undecided. Only skip this unpublished root package;
-# dependencies still undergo license checking.
+# Report third-party dependencies separately from the unpublished project.
+# The project itself is Apache-2.0; dependencies still undergo license checking.
 [private]
 ignore = true
 

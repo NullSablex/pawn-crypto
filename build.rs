@@ -89,8 +89,6 @@ fn generate_omp_inc(base_rendered: &str) {
         "/*\n\
          \x20* crypto - open.mp naming style (standalone).\n\
          \x20*\n\
-         \x20* GENERATED from crypto.inc by build.rs - do not edit by hand.\n\
-         \x20*\n\
          \x20* Include THIS instead of <crypto> to write the API in\n\
          \x20* open.mp's Prefix_PascalCase style (Crypto_Sha256).\n\
          \x20* Each native aliases the real one, so there is no\n\

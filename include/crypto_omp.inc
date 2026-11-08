@@ -1,8 +1,6 @@
 /*
  * crypto - open.mp naming style (standalone).
  *
- * GENERATED from crypto.inc by build.rs - do not edit by hand.
- *
  * Include THIS instead of <crypto> to write the API in
  * open.mp's Prefix_PascalCase style (Crypto_Sha256).
  * Each native aliases the real one, so there is no

@@ -1,0 +1,132 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing approved tag, matching Cargo.toml
+        required: true
+        type: string
+      channel:
+        description: Must match the changelog entry
+        required: true
+        default: prerelease
+        type: choice
+        options: [prerelease, release]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag || github.ref_name }}
+  cancel-in-progress: false
+
+jobs:
+  validate:
+    name: Validate release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    outputs:
+      tag: ${{ steps.metadata.outputs.tag }}
+      prerelease: ${{ steps.metadata.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ inputs.tag || github.ref_name }}
+          fetch-depth: 0
+          persist-credentials: false
+      - run: rustup show
+      - name: Validate tag, version and changelog
+        id: metadata
+        env:
+          RELEASE_TAG: ${{ inputs.tag || github.ref_name }}
+          RELEASE_CHANNEL: ${{ inputs.channel || 'auto' }}
+        run: |
+          cargo xtask prepare-release --tag "$RELEASE_TAG" --channel "$RELEASE_CHANNEL" --out dist/release
+          test "$(git rev-parse "refs/tags/$RELEASE_TAG^{commit}")" = "$(git rev-parse HEAD)"
+          jq -r '"tag=\(.tag)\nprerelease=\(.prerelease)"' dist/release/metadata.json >> "$GITHUB_OUTPUT"
+      - name: Check source and Rust tooling
+        run: |
+          cargo xtask check-pawn
+          cargo xtask gen-api --check
+          cargo fmt --manifest-path xtask/Cargo.toml -- --check
+          cargo test --locked --manifest-path xtask/Cargo.toml
+          cargo clippy --locked --manifest-path xtask/Cargo.toml --all-targets -- -D warnings
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: release-notes
+          path: dist/release/
+          if-no-files-found: error
+
+  build:
+    name: Release builds
+    needs: validate
+    uses: ./.github/workflows/rust.yml
+    with:
+      ref: ${{ needs.validate.outputs.tag }}
+
+  publish:
+    name: Publish release
+    needs: [validate, build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    env:
+      RELEASE_TAG: ${{ needs.validate.outputs.tag }}
+      RELEASE_PRERELEASE: ${{ needs.validate.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ needs.validate.outputs.tag }}
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: pawn-crypto-*
+          merge-multiple: true
+          path: .
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: dependency-licenses
+          path: dist/
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: release-notes
+          path: release-notes/
+      - name: Package binaries, includes and licenses
+        run: |
+          set -euo pipefail
+          for platform in linux windows; do
+            mkdir -p "packages/$platform/plugins" "packages/$platform/include"
+            cp include/crypto.inc include/crypto_omp.inc "packages/$platform/include/"
+            cp -R docs examples "packages/$platform/"
+            cp README.md CHANGELOG.md LICENSE DCO CLA.md AI-POLICY.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md "packages/$platform/"
+            cp dist/licenses.json dist/THIRD-PARTY-LICENSES.html "packages/$platform/"
+          done
+          cp dist/pawn_crypto.so packages/linux/plugins/
+          cp dist/pawn_crypto.dll packages/windows/plugins/
+          tar -czf "dist/pawn-crypto-$RELEASE_TAG-linux-x86.tar.gz" -C packages/linux .
+          (cd packages/windows && 7z a -tzip "../../dist/pawn-crypto-$RELEASE_TAG-windows-x86.zip" . > /dev/null)
+          cp include/crypto.inc include/crypto_omp.inc LICENSE dist/
+          (cd dist && sha256sum pawn_crypto.so pawn_crypto.dll crypto.inc crypto_omp.inc LICENSE licenses.json THIRD-PARTY-LICENSES.html pawn-crypto-*.tar.gz pawn-crypto-*.zip > SHA256SUMS)
+      - name: Publish approved tag with curated notes
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          assets=(dist/pawn_crypto.so dist/pawn_crypto.dll dist/crypto.inc dist/crypto_omp.inc
+            dist/LICENSE dist/licenses.json dist/THIRD-PARTY-LICENSES.html dist/SHA256SUMS
+            dist/pawn-crypto-*.tar.gz dist/pawn-crypto-*.zip)
+          if gh release view "$RELEASE_TAG" --json isDraft > current-release.json 2>/dev/null; then
+            jq -e '.isDraft == true' current-release.json > /dev/null
+            gh release upload "$RELEASE_TAG" "${assets[@]}" --clobber
+          else
+            gh release create "$RELEASE_TAG" --verify-tag --draft --title "$RELEASE_TAG" \
+              --notes-file release-notes/notes.md "${assets[@]}"
+          fi
+          latest=true
+          if [ "$RELEASE_PRERELEASE" = true ]; then latest=false; fi
+          gh release edit "$RELEASE_TAG" --title "$RELEASE_TAG" --notes-file release-notes/notes.md \
+            --prerelease="$RELEASE_PRERELEASE" --latest="$latest" --draft=false

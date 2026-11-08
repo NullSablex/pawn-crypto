@@ -16,4 +16,4 @@ The strings and keys are demonstration data. Never print actual passwords or
 secret keys. Choose one plugin include per script; the naming style does not
 depend on whether the server is SA-MP or open.mp.
 
-Compile them with `scripts/check-pawn.py`; see [CONTRIBUTING.md](../CONTRIBUTING.md).
+Compile them with `cargo xtask pawn`; see [CONTRIBUTING.md](../CONTRIBUTING.md).

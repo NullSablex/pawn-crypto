@@ -1,7 +1,7 @@
 # Pawn runtime fixtures
 
 These fixtures exercise the actual AMX native boundary. Use
-`scripts/check-pawn.py --compiler ... --stdlib ... --server ...` to compile them
+`cargo xtask pawn --compiler ... --stdlib ... --server ...` to compile them
 and run isolated Linux open.mp instances in native and legacy modes.
 
 - `crypto.pwn` checks all SHA-2 and HMAC natives, buffer handling, raw bytes,

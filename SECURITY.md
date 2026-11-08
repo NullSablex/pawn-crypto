@@ -26,15 +26,16 @@ audit or test suite does not replace review of cryptographic API changes.
 
 ## Supported versions
 
-Before the first release, fixes target the default branch. After releases begin,
-the latest supported release and default branch receive fixes unless a release
-policy explicitly states otherwise. No release has been published by the initial
-repository setup.
+The initial pre-release is being prepared on `master`; no release has been
+published yet. Security fixes currently target `master`. Pre-release APIs and
+behavior may change. Once releases are published, support will be stated in
+their release notes.
 
 ## Operational behavior
 
 SHA-2 and HMAC operations are synchronous and accept null-terminated Pawn strings.
 Argon2id runs on a bounded worker pool and returns to the calling AMX through
 rust-samp's main-thread queue. Input and verification-cost limits are documented
-in the include and README. The plugin clears its owned temporary password and
-key copies; the caller remains responsible for its Pawn arrays and storage.
+in the include and [password guide](docs/passwords.md). The plugin clears its
+owned temporary password and key copies; the caller remains responsible for
+its Pawn arrays and storage.

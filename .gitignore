@@ -1,8 +1,9 @@
 /target/
+/xtask/target/
 /dist/
 /.claude/
 /logs/
 *.amx
 
-# Python tooling
-__pycache__/
+# Documentation build
+/site/

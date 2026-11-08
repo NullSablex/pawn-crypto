@@ -1,6 +1,6 @@
 # Changelog
 
-## [Unreleased]
+## [0.1.0] - Pre-release
 
 ### Added
 
@@ -13,12 +13,15 @@
   and PascalCase aliases derived from one template.
 - Runnable Pawn examples, known-answer tests and isolated open.mp runtime fixtures.
 - Linux and Windows build scripts, a pinned Rust toolchain and cargo-about inventories.
+- Rust maintenance tooling through `cargo xtask` for Pawn source checks,
+  API reference generation, documentation checks and isolated runtime tests.
 - GitHub Actions CI, dependency audits, CodeQL configuration, Dependabot,
-  issue and pull request templates, and contribution and security policies.
-
-### Project status
-
-- The project license remains undecided. The dependency inventory is separate
-  from the license of pawn-crypto.
-- Linux runtime coverage uses open.mp in native and legacy modes. Windows
-  execution and a SA-MP server runtime remain to be validated.
+  issue and pull request templates, and contribution, AI usage and security policies.
+- Release and pre-release automation with version and changelog validation,
+  platform archives, dependency notices and SHA-256 checksums; Release Drafter
+  and OpenSSF Scorecard workflows.
+- Apache-2.0 project licensing, DCO 1.1 sign-offs, a contributor license
+  agreement accepted through sign-offs, and automated pull request checks.
+- README and mdBook documentation covering installation, operations,
+  asynchronous behavior, errors, security, builds and dependency licensing,
+  with the native API reference generated from the documented Pawn includes.

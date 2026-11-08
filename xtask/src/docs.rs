@@ -1,0 +1,231 @@
+use crate::{Result, files, read, root};
+use pulldown_cmark::{Event, Parser, Tag};
+use regex::Regex;
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt::Write,
+    process::Command,
+};
+
+#[derive(Default)]
+struct Documentation {
+    summary: Vec<String>,
+    params: BTreeMap<String, Vec<String>>,
+    returns: Vec<String>,
+}
+enum Field {
+    Summary,
+    Param(String),
+    Returns,
+}
+
+fn parse_doc(block: &str) -> Result<Documentation> {
+    let mut doc = Documentation::default();
+    let mut field = Field::Summary;
+    for raw in block.lines() {
+        let line = raw.trim().trim_start_matches('*').trim();
+        if let Some(rest) = line.strip_prefix("@param ") {
+            let (name, description) = rest
+                .split_once(' ')
+                .ok_or("@param needs a name and description")?;
+            if doc
+                .params
+                .insert(name.to_owned(), vec![description.to_owned()])
+                .is_some()
+            {
+                return Err(format!("duplicate @param {name}").into());
+            }
+            field = Field::Param(name.to_owned());
+        } else if let Some(rest) = line.strip_prefix("@return ") {
+            doc.returns.push(rest.to_owned());
+            field = Field::Returns;
+        } else if line.starts_with('@') {
+            return Err(format!("unsupported documentation tag: {line}").into());
+        } else {
+            match &field {
+                Field::Summary => doc.summary.push(line.to_owned()),
+                Field::Returns => doc.returns.push(line.to_owned()),
+                Field::Param(name) => doc
+                    .params
+                    .get_mut(name)
+                    .ok_or("missing parameter")?
+                    .push(line.to_owned()),
+            }
+        }
+    }
+    Ok(doc)
+}
+
+fn cell(text: &str) -> String {
+    text.split_whitespace()
+        .collect::<Vec<_>>()
+        .join(" ")
+        .replace('|', "\\|")
+}
+
+pub fn generate(check: bool) -> Result<()> {
+    let base = read(&root().join("include/crypto.inc"))?;
+    let styled = read(&root().join("include/crypto_omp.inc"))?;
+    let aliases: BTreeMap<_, _> = Regex::new(r"(?m)^(native (?:\w+:)?\w+\(.*\)) = (crypto_\w+);$")?
+        .captures_iter(&styled)
+        .map(|cap| (cap[2].to_owned(), cap[0].to_owned()))
+        .collect();
+    let entry_re = Regex::new(r"(?s)/\*\*(.*?)\*/\s*(native (?:\w+:)?(crypto_\w+)\(([^\n]*)\);)")?;
+    let declared: BTreeSet<_> = Regex::new(r"(?m)^native (?:\w+:)?(crypto_\w+)\(")?
+        .captures_iter(&base)
+        .map(|cap| cap[1].to_owned())
+        .collect();
+    let entries: Vec<_> = entry_re.captures_iter(&base).collect();
+    let documented: BTreeSet<_> = entries.iter().map(|cap| cap[3].to_owned()).collect();
+    if declared.is_empty()
+        || documented != declared
+        || aliases.keys().cloned().collect::<BTreeSet<_>>() != declared
+    {
+        return Err("every native needs adjacent JavaDoc and a styled alias".into());
+    }
+    let arg_re = Regex::new(r"^\s*(?:const\s+)?(?:\w+:)?(\w+)(?:\[\])?(?:\s*=.*)?\s*$")?;
+    let mut groups: BTreeMap<&str, Vec<String>> = BTreeMap::new();
+    for entry in entries {
+        let name = &entry[3];
+        let doc = parse_doc(&entry[1])?;
+        let names: Vec<_> = entry[4]
+            .split(',')
+            .map(|arg| {
+                arg_re
+                    .captures(arg)
+                    .map(|cap| cap[1].to_owned())
+                    .ok_or_else(|| format!("unsupported argument in {name}: {arg}"))
+            })
+            .collect::<std::result::Result<_, _>>()?;
+        if doc.summary.join(" ").trim().is_empty()
+            || doc.returns.join(" ").trim().is_empty()
+            || doc.params.keys().cloned().collect::<BTreeSet<_>>()
+                != names.iter().cloned().collect()
+        {
+            return Err(format!("incomplete documentation for {name}").into());
+        }
+        let section = if name.starts_with("crypto_argon2id_") {
+            "Argon2id"
+        } else if name.starts_with("crypto_hmac_") {
+            "HMAC"
+        } else if name.starts_with("crypto_sha") {
+            "SHA-2"
+        } else {
+            "Other"
+        };
+        let mut text = format!(
+            "### {name}\n\n{}\n\n**`crypto.inc`**\n\n```pawn\n{}\n```\n\n**`crypto_omp.inc`**\n\n```pawn\n{}\n```\n\n| Parameter | Meaning |\n| --- | --- |\n",
+            doc.summary.join("\n").trim(),
+            &entry[2],
+            aliases[name]
+        );
+        for parameter in names {
+            writeln!(
+                text,
+                "| `{parameter}` | {} |",
+                cell(&doc.params[&parameter].join(" "))
+            )?;
+        }
+        writeln!(text, "\n**Returns:** {}\n", cell(&doc.returns.join(" ")))?;
+        groups.entry(section).or_default().push(text);
+    }
+    let mut output = String::from(
+        "# Native API\n\n<!-- Generated by cargo xtask gen-api; edit include/crypto.inc.in instead. -->\n\nThis page is generated from the native declarations and JavaDoc in the Pawn\nincludes. Choose one naming include per script; aliases bind to the same Rust\nnative and work with either server. Read the [operation guides](index.md) for\nexecution, lifetime and error semantics.\n\n## Constants\n\n| Constant | Value |\n| --- | --- |\n| `CRYPTO_VERSION` | Generated from `Cargo.toml` at build time. |\n",
+    );
+    for cap in Regex::new(r"(?m)^#define (CRYPTO_[A-Z0-9_]+) \(([^\n]+)\)$")?.captures_iter(&base) {
+        writeln!(output, "| `{}` | `{}` |", &cap[1], &cap[2])?;
+    }
+    let enum_re = Regex::new(r"(CRYPTO_[A-Z0-9_]+)(?:\s*=\s*(\d+))?")?;
+    for cap in Regex::new(r"enum\s*\{([^}]+)\};")?.captures_iter(&base) {
+        let mut value: u32 = 0;
+        for item in enum_re.captures_iter(&cap[1]) {
+            if let Some(explicit) = item.get(2) {
+                value = explicit.as_str().parse()?;
+            }
+            writeln!(output, "| `{}` | `{value}` |", &item[1])?;
+            value += 1;
+        }
+    }
+    output.push_str("\nDigest/tag length constants exclude the null terminator. Add one cell for\ntheir output arrays. `CRYPTO_ARGON2ID_HASH_SIZE` is a buffer capacity and\nalready includes the terminator. Password status meanings are described in\n[errors](errors.md#argon2id-callback-statuses).\n\n");
+    for section in ["SHA-2", "HMAC", "Argon2id", "Other"] {
+        if let Some(contents) = groups.get(section) {
+            writeln!(output, "## {section}\n\n{}", contents.join("\n"))?;
+        }
+    }
+    let output = output.trim_end().to_owned() + "\n";
+    let path = root().join("docs/api-reference.md");
+    if check {
+        if read(&path)? != output {
+            return Err("native reference is stale; run cargo xtask gen-api".into());
+        }
+        println!("Native API reference is up to date.");
+    } else {
+        std::fs::write(path, output)?;
+        println!("Generated docs/api-reference.md from the Pawn includes.");
+    }
+    Ok(())
+}
+
+fn links(rendered: bool) -> Result<()> {
+    let docs_root = root().join("docs").canonicalize()?;
+    let mut pages = files(&docs_root, "md")?;
+    pages.extend([root().join("README.md"), root().join("CONTRIBUTING.md")]);
+    let ids = Regex::new(r#"\bid="([^"]+)""#)?;
+    for page in pages {
+        for event in Parser::new(&read(&page)?) {
+            if let Event::Start(Tag::Link { dest_url, .. }) = event {
+                let url = dest_url.as_ref();
+                if url.contains("://") || url.starts_with("mailto:") {
+                    continue;
+                }
+                let (target, anchor) = url.split_once('#').unwrap_or((url, ""));
+                let target = if target.is_empty() {
+                    page.clone()
+                } else {
+                    page.parent().ok_or("missing parent")?.join(target)
+                };
+                if !target.is_file() {
+                    return Err(format!("{}: missing link target {url}", page.display()).into());
+                }
+                if rendered && !anchor.is_empty() {
+                    let target = target.canonicalize()?;
+                    if let Ok(relative) = target.strip_prefix(&docs_root) {
+                        let html = root().join("site").join(relative).with_extension("html");
+                        if !ids
+                            .captures_iter(&read(&html)?)
+                            .any(|cap| &cap[1] == anchor)
+                        {
+                            return Err(
+                                format!("{}: missing anchor in {url}", page.display()).into()
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+pub fn build() -> Result<()> {
+    generate(true)?;
+    links(false)?;
+    let result = Command::new("mdbook")
+        .arg("build")
+        .arg(root())
+        .env("RUST_LOG", "info")
+        .output()
+        .map_err(|error| format!("mdbook: {error}; install mdbook 0.5.4"))?;
+    let diagnostics = String::from_utf8_lossy(&result.stderr);
+    eprint!("{diagnostics}");
+    if !result.status.success()
+        || diagnostics
+            .lines()
+            .any(|line| line.contains(" WARN ") || line.contains("[WARN"))
+    {
+        return Err("documentation build failed or reported warnings".into());
+    }
+    links(true)?;
+    println!("Documentation built; source links and rendered anchors verified.");
+    Ok(())
+}

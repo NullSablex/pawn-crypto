@@ -137,7 +137,6 @@ main() {
   log_info "Mode: SA-MP + native Open Multiplayer"
   build_windows
   build_linux
-  "$ROOT_DIR/scripts/licenses.sh"
   log_info "Done: $DIST_DIR/"
 }
 

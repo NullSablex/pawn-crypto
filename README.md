@@ -1,80 +1,67 @@
 # pawn-crypto
 
-Cryptography plugin for SA-MP and Open Multiplayer, built with
-[rust-samp](https://github.com/NullSablex/rust-samp).
+> Cryptography plugin for SA-MP and Open Multiplayer, written in Rust — by [NullSablex](https://github.com/NullSablex)
 
-SHA-2 hashing, HMAC message authentication and asynchronous Argon2id password
-hashing, implemented with RustCrypto libraries and rust-samp.
+[![Rust CI](https://github.com/NullSablex/pawn-crypto/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/rust.yml)
+[![Pawn sources](https://github.com/NullSablex/pawn-crypto/actions/workflows/encoding.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/encoding.yml)
+[![Dependency audit](https://github.com/NullSablex/pawn-crypto/actions/workflows/audit.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/audit.yml)
+[![Docs](https://github.com/NullSablex/pawn-crypto/actions/workflows/docs.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/docs.yml)
+[![CodeQL](https://github.com/NullSablex/pawn-crypto/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/codeql.yml)
+[![DCO](https://github.com/NullSablex/pawn-crypto/actions/workflows/contributions.yml/badge.svg?event=pull_request)](DCO)
+[![CLA](https://img.shields.io/badge/CLA-required-blue)](CLA.md)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/NullSablex/pawn-crypto/badge)](https://scorecard.dev/viewer/?uri=github.com/NullSablex/pawn-crypto)
+[![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+![SA-MP](https://img.shields.io/badge/SA--MP-plugin-orange)
+![open.mp](https://img.shields.io/badge/open.mp-native%20%26%20legacy-orange)
+![Rust](https://img.shields.io/badge/Rust-2024%20edition-orange)
+![Platforms](https://img.shields.io/badge/platforms-Linux%20%7C%20Windows-green)
+![Architecture](https://img.shields.io/badge/arch-x86%20%2832--bit%29-lightgrey)
+[![Release](https://img.shields.io/github/v/release/NullSablex/pawn-crypto?label=release)](https://github.com/NullSablex/pawn-crypto/releases/latest)
+[![Latest including pre-releases](https://img.shields.io/github/v/release/NullSablex/pawn-crypto?include_prereleases&label=latest%20%28incl.%20pre%29)](https://github.com/NullSablex/pawn-crypto/releases)
+[![Downloads](https://img.shields.io/github/downloads/NullSablex/pawn-crypto/total)](https://github.com/NullSablex/pawn-crypto/releases)
+[![Stars](https://img.shields.io/github/stars/NullSablex/pawn-crypto)](https://github.com/NullSablex/pawn-crypto/stargazers)
+[![Issues](https://img.shields.io/github/issues/NullSablex/pawn-crypto)](https://github.com/NullSablex/pawn-crypto/issues)
+[![Last commit](https://img.shields.io/github/last-commit/NullSablex/pawn-crypto/master)](https://github.com/NullSablex/pawn-crypto/commits/master)
 
-## Supported features
+## Overview
 
-| Feature | Status | Details |
+**pawn-crypto** provides SHA-2 hashing, HMAC authentication and asynchronous
+Argon2id password hashing for SA-MP and Open Multiplayer. Built with
+[rust-samp](https://github.com/NullSablex/rust-samp) and RustCrypto.
+
+The Pawn include is **`crypto.inc`**. The same default binary exposes the SA-MP
+plugin interface and the native open.mp component interface.
+
+### Features
+
+| Operation | API | Execution |
 | --- | --- | --- |
-| SHA-2 | Available | SHA-224, SHA-256, SHA-384 and SHA-512, with lowercase hexadecimal output. |
-| HMAC | Available | HMAC-SHA-256 and HMAC-SHA-512 generation and constant-time tag verification. |
-| Argon2id | Available | Asynchronous password hashing and verification with OS-random salts and PHC strings. |
-| Pawn strings | Available | Packed and unpacked strings; original bytes up to the first null byte. |
-| Output buffers | Available | Capacity checks, null termination and in-place hashing. |
-| Pawn naming styles | Available | `crypto.inc` uses snake_case; `crypto_omp.inc` provides PascalCase aliases. |
-| Linux x86 | Build verified | 32-bit `.so`; runtime tests passed in open.mp native and legacy modes. |
-| Windows x86 MSVC | Build verified | 32-bit `.dll`; runtime testing on Windows is pending. |
-| SA-MP plugin interface | Available | Legacy entry points are exported; testing on a SA-MP server is pending. |
-| Dependency license inventory | Available | `cargo-about` reports for Linux and Windows. |
+| SHA-224, SHA-256, SHA-384, SHA-512 | `crypto_sha224` / `256` / `384` / `512` | Synchronous, lowercase hexadecimal output. |
+| HMAC-SHA-256, HMAC-SHA-512 | `crypto_hmac_sha256` / `512` and `_verify` | Synchronous, full tags and constant-time verification. |
+| Argon2id | `crypto_argon2id_hash`, `crypto_argon2id_verify` | Bounded workers, random salts, PHC strings and Pawn callbacks. |
 
-All four SHA-2 variants have known-answer tests for empty input, standard
-vectors and a million-byte input. HMAC has RFC 4231 vectors, including keys
-longer than a hash block. Tests cover packed strings, non-UTF-8 bytes, insufficient
-buffers, zero capacity, in-place output, wrong messages and keys, tampered tags,
-truncated tags and invalid hexadecimal. Verification accepts either hex case.
+The API accepts packed or unpacked Pawn strings. Message, key and password bytes
+are preserved up to the first null byte without text decoding or normalization.
+HMAC and Argon2id are distinct operations: use the
+[password API](docs/passwords.md) for password storage.
 
-| Algorithm | Generation native | Hex characters | Verification native |
-| --- | --- | --- | --- |
-| SHA-224 | `crypto_sha224` | 56 | - |
-| SHA-256 | `crypto_sha256` | 64 | - |
-| SHA-384 | `crypto_sha384` | 96 | - |
-| SHA-512 | `crypto_sha512` | 128 | - |
-| HMAC-SHA-256 | `crypto_hmac_sha256` | 64 | `crypto_hmac_sha256_verify` |
-| HMAC-SHA-512 | `crypto_hmac_sha512` | 128 | `crypto_hmac_sha512_verify` |
+## Installation
 
-Output arrays need one extra cell for the null terminator. The includes expose
-`CRYPTO_SHA224_LENGTH`, `CRYPTO_SHA256_LENGTH`, `CRYPTO_SHA384_LENGTH`,
-`CRYPTO_SHA512_LENGTH`, `CRYPTO_HMAC_SHA256_LENGTH` and `CRYPTO_HMAC_SHA512_LENGTH`.
+1. Get `pawn_crypto.so` for Linux or `pawn_crypto.dll` for Windows, together with
+   the Pawn include, from [Releases](https://github.com/NullSablex/pawn-crypto/releases),
+   or [build from source](docs/building.md).
+2. Copy `crypto.inc` into your Pawn include directory, such as `pawno/include/`
+   or `qawno/include/`.
+3. Load the binary using one mode:
+   - **SA-MP:** place it in `plugins/` and add `pawn_crypto.so` on Linux or
+     `pawn_crypto` on Windows to the `plugins` line in `server.cfg`.
+   - **open.mp native:** place it in `components/`; the server loads it automatically.
+   - **open.mp legacy:** place it in `plugins/` and add `pawn_crypto` to
+     `pawn.legacy_plugins` in `config.json`.
 
-## Planned features
+See [installation](docs/installation.md) for the configuration examples.
 
-These are the initial roadmap candidates. They are not implemented yet;
-their APIs, dependencies and licenses will be reviewed before addition.
-
-| Feature | Intended use |
-| --- | --- |
-| Cryptographically secure random bytes | Keys, salts, nonces and tokens. |
-| Authenticated encryption | Encryption and decryption with integrity verification; algorithm selection pending. |
-| Binary buffers and encoding helpers | Explicit-length data, including null bytes, with hexadecimal and Base64 conversion. |
-
-## Build
-
-Rust 1.99.1 is pinned in `rust-toolchain.toml` and required by `Cargo.toml`.
-
-```sh
-./scripts/build-linux.sh                # Linux + Windows, from Linux
-./scripts/build-windows.sh              # Windows + Linux, from Git Bash
-PROFILE=dev ./scripts/build-linux.sh    # Development build
-```
-
-The scripts produce `dist/pawn_crypto.so` and `dist/pawn_crypto.dll`. Both are
-32-bit binaries with SA-MP and native open.mp entry points. Linux builds need
-32-bit development libraries (`gcc-multilib` on Debian/Ubuntu), Rust, `jq`, `rg`
-and `cargo-about`.
-The Linux script uses `cargo-xwin` for Windows; the Windows script uses MSVC
-and either WSL or Docker with `cross` for Linux. Missing Rust targets and Cargo
-cross-compilation tools are installed by the scripts.
-
-## Install and use
-
-Copy `include/crypto.inc` to the Pawn compiler's include directory. For SA-MP,
-put the binary in `plugins/` and append `pawn_crypto.so` (Linux) or `pawn_crypto`
-(Windows) to the `plugins` line in `server.cfg`. On open.mp, the default build
-can instead be loaded directly from `components/`.
+## Quick start
 
 ```pawn
 #include <a_samp>
@@ -91,119 +78,59 @@ public OnFilterScriptInit()
 }
 ```
 
-`crypto_sha256(const input[], output[], size = sizeof(output))` writes 64
-lowercase hexadecimal characters. The output needs 65 cells, including the
-null terminator. A smaller size returns `false` without modifying the output.
-Packed and unpacked Pawn strings are hashed as their original bytes up to the
-first null byte, without encoding conversion. This operation is synchronous;
-SHA-256 is for data hashing, not password storage.
+For PascalCase, install and include `crypto_omp.inc` instead and call
+`Crypto_Sha256`. It provides Pawn aliases to the same natives. Choose one naming
+include per script; either style works on SA-MP and open.mp.
 
-HMAC generation takes `(input, key, output, size = sizeof(output))`; verification
-takes `(input, key, expected)` and returns `false` for a mismatch, malformed
-hexadecimal or a truncated tag. Messages and keys use the original bytes up to
-the first null byte. Empty keys are accepted by HMAC, though applications should
-use secret keys generated securely. The plugin wipes its temporary key copy
-and enables the SHA-2 and HMAC libraries' zeroization features; the caller owns
-the Pawn key array.
-Use the verification natives to compare tags. Runnable examples for both naming
-styles are in `examples/03_hmac.pwn` and `examples/04_hmac_omp.pwn`.
+## Documentation
 
-Alternatively, `crypto_omp.inc` exposes `Crypto_Sha256` as a Pawn alias to
-that native. Choose one naming style per script. Both includes work with
-SA-MP and open.mp; neither requires the open.mp standard library. The open.mp
-Pawn compiler can compile the examples using SA-MP's standard includes.
+Start with the [documentation overview](docs/index.md).
 
-## Argon2id passwords
-
-`crypto_argon2id_hash(password, callback, context = 0)` queues password hashing.
-Its callback is `public Callback(status, const hash[], context)`. Store the full
-PHC string unchanged; `CRYPTO_ARGON2ID_HASH_SIZE` is a suitable buffer capacity,
-including the null terminator. Every hash uses a fresh 16-byte OS-random salt,
-Argon2id v19, 19456 KiB of memory, two iterations, one lane and a 32-byte output.
-
-`crypto_argon2id_verify(password, hash, callback, context = 0)` queues verification.
-Its callback is `public Callback(status, bool:matches, context)`:
-
-| Status | Meaning |
+| Guide | Contents |
 | --- | --- |
-| `CRYPTO_PASSWORD_OK` | Hash generated, or verification completed; inspect `matches` for verification. |
-| `CRYPTO_PASSWORD_INVALID_HASH` | Malformed PHC, unsupported algorithm/version, or excessive verification costs. |
-| `CRYPTO_PASSWORD_FAILED` | Worker or hashing failure. |
+| [Installation](docs/installation.md) | Binary placement and server configuration. |
+| [SHA-2](docs/hashing.md) | Data digests and output buffers. |
+| [HMAC](docs/hmac.md) | Message authentication and tag verification. |
+| [Argon2id](docs/passwords.md) | Password storage, callbacks and resource limits. |
+| [API reference](docs/api-reference.md) | Native signatures, aliases, constants and return values. |
+| [Errors](docs/errors.md) | Submission failures, callback results and troubleshooting. |
+| [Security](docs/security.md) | Data handling, secrets and application responsibilities. |
+| [Building](docs/building.md) | Toolchain, build scripts and validation commands. |
+| [Releases](docs/releases.md) | Release and pre-release preparation and packaging. |
+| [Dependency licenses](docs/licenses.md) | cargo-about inventories and third-party notices. |
 
-A wrong password returns `CRYPTO_PASSWORD_OK` with `matches = false`. Failed
-hash operations supply an empty hash string. A native returning `true` means
-accepted into the queue. A `false` return produces no callback; check it before
-waiting for a result. Callbacks must already exist in the calling AMX and may
-submit new operations. Packed and unpacked passwords retain their original
-bytes, including non-UTF-8 bytes, up to the first null.
+## Examples
 
-The pool uses at most two workers and accepts at most 128 total queued, running
-and undelivered operations. Passwords are limited to 1024 bytes and stored PHC
-strings to 256 bytes. Verification reads parameters from the PHC string, with
-maximums of 65536 KiB, ten iterations and four lanes. Completion order can vary.
-The plugin clears its temporary password copies and enables Argon2 zeroization.
+The [examples](examples/README.md) cover SHA-2, HMAC and asynchronous Argon2id in
+both naming styles. Each `.pwn` file is a runnable filterscript.
 
-Results use rust-samp's main-thread queue and `exec_public!`, with a 2 ms queue
-drain budget per tick. They go only to the calling script; unloading it cancels
-its callbacks, including when a new AMX reuses its address. Unloading the plugin
-cancels queued work and joins active workers before the library is released.
-Examples: `examples/05_argon2id.pwn` and `examples/06_argon2id_omp.pwn`.
+## Building from source
 
-## Layout
-
-- `src/lib.rs`: module declarations and native registration.
-- `src/plugin.rs`: plugin state and lifecycle.
-- `src/hash.rs`: hashing operations and known-answer tests.
-- `src/hmac.rs`: keyed authentication and constant-time verification.
-- `src/encoding.rs`: internal hexadecimal conversion for digests and tags.
-- `src/password.rs`: Argon2id workers, bounded submission and SDK callback delivery.
-- `src/logger.rs`: SDK logging and startup banner.
-- `src/natives/`: native implementations grouped by domain.
-- `include/crypto.inc.in`: source template; `build.rs` generates both includes.
-- `scripts/`: Linux and Windows build entry points.
-- `examples/`: Pawn examples using each naming style.
-
-Edit the include template rather than generated files. `Cargo.toml` is the
-single source of the plugin version; the build injects it into the includes.
+Use the Rust toolchain pinned in [rust-toolchain.toml](rust-toolchain.toml).
+The build scripts produce `dist/pawn_crypto.so` and `dist/pawn_crypto.dll`:
 
 ```sh
-cargo fmt --all -- --check
-cargo test --locked --target i686-unknown-linux-gnu --lib
-cargo clippy --locked --target i686-unknown-linux-gnu --all-targets -- -D warnings
-python3 .github/scripts/check_pawn_encoding.py
+./scripts/build-linux.sh
+./scripts/build-windows.sh
 ```
 
-Compile the examples and run the isolated Pawn runtime fixtures with
-`scripts/check-pawn.py`; see [CONTRIBUTING.md](CONTRIBUTING.md) for the commands.
+See [the build guide](docs/building.md) for platform requirements and
+cross-compilation setup.
 
-## Project information
+## Contributing
 
-- [Changelog](CHANGELOG.md): implemented changes and current project status.
-- [Contributing](CONTRIBUTING.md): development, validation and commit conventions.
-- [Security policy](SECURITY.md): private vulnerability reporting and scope.
-- [Code of conduct](CODE_OF_CONDUCT.md): participation expectations.
-- [Pawn examples](examples/README.md): usage by operation and naming style.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development and review requirements.
+Each contributor's `Signed-off-by` certifies the [DCO](DCO) and accepts the
+[CLA](CLA.md) under the contribution policy. Participation follows the
+[Code of Conduct](CODE_OF_CONDUCT.md) and [AI usage policy](AI-POLICY.md).
 
-CI builds and tests Linux GNU and Windows MSVC, checks both plugin configurations,
-validates generated includes and produces dependency license artifacts. RustSec
-audits run on changes and weekly. CodeQL is configured for Rust and GitHub Actions;
-private repositories opt in after code scanning becomes available. This setup
-does not publish tags or releases automatically.
+Report vulnerabilities privately as described in [SECURITY.md](SECURITY.md).
+Changes are recorded in [CHANGELOG.md](CHANGELOG.md).
 
-## Dependency licenses
+## License
 
-The project license is undecided. Generate the dependency inventory with:
+Copyright (c) 2026 NullSablex
 
-```sh
-./scripts/licenses.sh
-```
-
-This uses `cargo-about` and the lockfile to write `dist/licenses.json` and
-`dist/THIRD-PARTY-LICENSES.html` for both supported targets. Build scripts also
-generate these reports. Build, development and transitive dependencies are
-included; only the unpublished root package is excluded while its license
-remains undecided. `about.toml` selects among dependency license alternatives
-and fails on unaccepted licenses; it does not license this project.
-The offline inventory may contain synthesized standard texts where packages
-omit license files. Original copyright notices still need review before
-using the report for redistribution.
+Licensed under the [Apache License, Version 2.0](LICENSE). Third-party
+dependencies retain their own licenses and notices; see the
+[dependency license guide](docs/licenses.md).

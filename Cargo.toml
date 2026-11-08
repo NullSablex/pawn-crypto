@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 rust-version = "1.99.1"
 description = "Cryptography plugin for SA-MP and open.mp, built with rust-samp."
+license = "Apache-2.0"
 authors = ["NullSablex <https://github.com/NullSablex>"]
 repository = "https://github.com/NullSablex/pawn-crypto"
 publish = false

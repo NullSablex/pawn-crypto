@@ -1,8 +1,6 @@
 /*
  * pawn-crypto v0.1.0 - SA-MP and Open Multiplayer plugin.
  * Author: NullSablex
- *
- * GENERATED from crypto.inc.in by build.rs - do not edit by hand.
  */
 
 #if defined _crypto_included
