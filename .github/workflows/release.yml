@@ -102,7 +102,7 @@ jobs:
             mkdir -p "packages/$platform/plugins" "packages/$platform/include"
             cp include/crypto.inc include/crypto_omp.inc "packages/$platform/include/"
             cp -R docs examples "packages/$platform/"
-            cp README.md CHANGELOG.md LICENSE DCO CLA.md AI-POLICY.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md "packages/$platform/"
+            cp README.md README.pt-BR.md CHANGELOG.md LICENSE DCO CLA.md AI-POLICY.md CONTRIBUTING.md SECURITY.md CODE_OF_CONDUCT.md "packages/$platform/"
             cp dist/licenses.json dist/THIRD-PARTY-LICENSES.html "packages/$platform/"
           done
           cp dist/pawn_crypto.so packages/linux/plugins/

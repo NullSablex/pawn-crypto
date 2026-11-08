@@ -2,6 +2,8 @@
 
 > Cryptography plugin for SA-MP and Open Multiplayer, written in Rust — by [NullSablex](https://github.com/NullSablex)
 
+English | [Português (Brasil)](README.pt-BR.md)
+
 [![Rust CI](https://github.com/NullSablex/pawn-crypto/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/rust.yml)
 [![Pawn sources](https://github.com/NullSablex/pawn-crypto/actions/workflows/encoding.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/encoding.yml)
 [![Dependency audit](https://github.com/NullSablex/pawn-crypto/actions/workflows/audit.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/audit.yml)
@@ -102,7 +104,7 @@ or browse the [Markdown overview](docs/index.md) on GitHub.
 
 ## Examples
 
-The [examples](examples/README.md) cover SHA-2, HMAC and asynchronous Argon2id in
+The [examples](examples/GUIDE.md) cover SHA-2, HMAC and asynchronous Argon2id in
 both naming styles. Each `.pwn` file is a runnable filterscript.
 
 ## Building from source

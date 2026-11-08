@@ -169,7 +169,11 @@ pub fn generate(check: bool) -> Result<()> {
 fn links(rendered: Option<&std::path::Path>) -> Result<()> {
     let docs_root = root().join("docs").canonicalize()?;
     let mut pages = files(&docs_root, "md")?;
-    pages.extend([root().join("README.md"), root().join("CONTRIBUTING.md")]);
+    pages.extend([
+        root().join("README.md"),
+        root().join("README.pt-BR.md"),
+        root().join("CONTRIBUTING.md"),
+    ]);
     let ids = Regex::new(r#"\bid="([^"]+)""#)?;
     for page in pages {
         for event in Parser::new(&read(&page)?) {

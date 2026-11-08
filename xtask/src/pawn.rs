@@ -150,6 +150,7 @@ fn compile(options: &Options, source: &Path, output: &Path) -> Result<()> {
 fn snippets(options: &Options, work: &Path) -> Result<usize> {
     let mut pages = files(&root().join("docs"), "md")?;
     pages.push(root().join("README.md"));
+    pages.push(root().join("README.pt-BR.md"));
     let mut count = 0;
     for page in pages {
         let mut code = None;

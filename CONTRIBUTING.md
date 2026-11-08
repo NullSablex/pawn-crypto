@@ -98,7 +98,8 @@ server remain separate from this Linux open.mp check.
 
 ## Implementation conventions
 
-- Keep Rust code, logs, includes and documentation in en-US.
+- Keep Rust code, logs and includes in en-US. Keep `README.md` and
+  `README.pt-BR.md` aligned; other documentation uses en-US.
 - Use Rust (`cargo xtask`) for validation, generation and test tooling. Do not
   add Python scripts. Zensical's runtime is used only to build documentation;
   its package version is pinned in `requirements-docs.txt`.
