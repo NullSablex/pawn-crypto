@@ -9,13 +9,12 @@ entry. Generated Pawn includes must match the package version.
 Mark a pre-release entry with `## [VERSION] - YYYY/MM/DD - Pre-release`; the date
 is optional. Stable entries use
 `## [VERSION]` or `## [VERSION] - YYYY/MM/DD`. Replace `VERSION` with the Cargo
-version. A SemVer prerelease suffix such as `-rc.1` also requires the pre-release
-heading. The initial pre-release uses the existing package version without
-adding a suffix; GitHub's pre-release flag identifies its channel.
+version. Pre-release versions include a SemVer suffix such as `-alpha.1`,
+`-beta.3` or `-rc.1`. The version, tag, changelog heading and GitHub pre-release
+flag must all identify the same channel.
 
-Published versions and tags are never reused or rewritten. If a pre-release
-already used a version without a suffix, choose a new package version for the
-stable release. A final changelog describes the result since the previous stable
+Published versions and tags are never reused or rewritten. A final changelog
+describes the result since the previous stable
 release; remove intermediate candidate entries and candidate-only history.
 
 ## Prepare and approve

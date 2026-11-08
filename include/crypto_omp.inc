@@ -16,7 +16,7 @@
 
 #pragma library pawn_crypto
 
-#define CRYPTO_VERSION "0.1.0"
+#define CRYPTO_VERSION "0.1.0-alpha.1"
 
 // ---------------------------------------------------------------------------
 // Hashing

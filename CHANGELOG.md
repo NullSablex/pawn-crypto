@@ -1,6 +1,6 @@
 # Changelog
 
-## [0.1.0] - 2026/11/08 - Pre-release
+## [0.1.0-alpha.1] - 2026/11/08 - Pre-release
 
 ### Added
 

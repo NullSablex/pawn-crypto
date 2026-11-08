@@ -24,8 +24,14 @@ fn prepare(version: &str, tag: &str, channel: &str, changelog: &str) -> Result<(
     if !suffix.is_empty() && !dated.is_match(suffix) {
         return Err("release header must be plain, dated YYYY/MM/DD, or marked Pre-release".into());
     }
-    if !prerelease && version.contains('-') {
-        return Err("a version with a prerelease suffix cannot be published as stable".into());
+    let semver_prerelease = version
+        .split('+')
+        .next()
+        .is_some_and(|core| core.contains('-'));
+    if prerelease != semver_prerelease {
+        return Err(
+            "changelog prerelease marker must agree with the SemVer package version".into(),
+        );
     }
     match channel {
         "auto" => (),
@@ -94,21 +100,26 @@ mod tests {
 
     #[test]
     fn extracts_only_the_requested_entry_and_its_channel() {
-        let changelog = "# Changelog\n\n## [0.1.0] - Pre-release\n\n### Added\n\n- Hashing.\n\n## [0.0.1]\n\n- Older.\n";
-        let (prerelease, notes) = prepare("0.1.0", "v0.1.0", "auto", changelog).unwrap();
+        let changelog = "# Changelog\n\n## [0.1.0-alpha.1] - Pre-release\n\n### Added\n\n- Hashing.\n\n## [0.0.1]\n\n- Older.\n";
+        let (prerelease, notes) =
+            prepare("0.1.0-alpha.1", "v0.1.0-alpha.1", "auto", changelog).unwrap();
         assert!(prerelease);
         assert_eq!(notes, "### Added\n\n- Hashing.");
-        assert!(prepare("0.1.0", "v0.1.0", "release", changelog).is_err());
+        assert!(prepare("0.1.0-alpha.1", "v0.1.0-alpha.1", "release", changelog).is_err());
     }
 
     #[test]
     fn dated_prereleases_keep_their_channel() {
-        let dated = "## [0.1.0] - 2026/11/08 - Pre-release\n\n- Hashing.\n";
-        assert!(prepare("0.1.0", "v0.1.0", "auto", dated).unwrap().0);
-        assert!(prepare("0.1.0", "v0.1.0", "prerelease", dated).is_ok());
-        assert!(prepare("0.1.0", "v0.1.0", "release", dated).is_err());
-        let malformed = "## [0.1.0] - yesterday - Pre-release\n\n- Hashing.\n";
-        assert!(prepare("0.1.0", "v0.1.0", "auto", malformed).is_err());
+        let dated = "## [0.1.0-alpha.1] - 2026/11/08 - Pre-release\n\n- Hashing.\n";
+        assert!(
+            prepare("0.1.0-alpha.1", "v0.1.0-alpha.1", "auto", dated)
+                .unwrap()
+                .0
+        );
+        assert!(prepare("0.1.0-alpha.1", "v0.1.0-alpha.1", "prerelease", dated).is_ok());
+        assert!(prepare("0.1.0-alpha.1", "v0.1.0-alpha.1", "release", dated).is_err());
+        let malformed = "## [0.1.0-alpha.1] - yesterday - Pre-release\n\n- Hashing.\n";
+        assert!(prepare("0.1.0-alpha.1", "v0.1.0-alpha.1", "auto", malformed).is_err());
     }
 
     #[test]
@@ -116,11 +127,23 @@ mod tests {
         let stable = "## [1.0.0] - 2026/11/07\n\n- Stable.\n";
         assert!(!prepare("1.0.0", "v1.0.0", "release", stable).unwrap().0);
         assert!(prepare("1.0.0", "v1.0.0", "prerelease", stable).is_err());
+        let no_suffix = "## [1.0.0] - Pre-release\n\n- Candidate.\n";
+        assert!(prepare("1.0.0", "v1.0.0", "auto", no_suffix).is_err());
         let invalid = "## [1.0.0-rc.1]\n\n- Candidate.\n";
         assert!(prepare("1.0.0-rc.1", "v1.0.0-rc.1", "auto", invalid).is_err());
         let candidate = "## [1.0.0-rc.1] - Pre-release\n\n- Candidate.\n";
         assert!(
             prepare("1.0.0-rc.1", "v1.0.0-rc.1", "auto", candidate)
+                .unwrap()
+                .0
+        );
+    }
+
+    #[test]
+    fn build_metadata_does_not_change_the_release_channel() {
+        let changelog = "## [1.0.0+linux-x86]\n\n- Stable.\n";
+        assert!(
+            !prepare("1.0.0+linux-x86", "v1.0.0+linux-x86", "release", changelog)
                 .unwrap()
                 .0
         );
