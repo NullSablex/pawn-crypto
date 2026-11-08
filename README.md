@@ -4,10 +4,8 @@
 
 English | [Português (Brasil)](README.pt-BR.md)
 
-[![Rust CI](https://github.com/NullSablex/pawn-crypto/actions/workflows/rust.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/rust.yml)
-[![Pawn sources](https://github.com/NullSablex/pawn-crypto/actions/workflows/encoding.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/encoding.yml)
+[![CI](https://github.com/NullSablex/pawn-crypto/actions/workflows/ci.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/ci.yml)
 [![Dependency audit](https://github.com/NullSablex/pawn-crypto/actions/workflows/audit.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/audit.yml)
-[![Docs](https://github.com/NullSablex/pawn-crypto/actions/workflows/docs.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/docs.yml)
 [![CodeQL](https://github.com/NullSablex/pawn-crypto/actions/workflows/codeql.yml/badge.svg?branch=master)](https://github.com/NullSablex/pawn-crypto/actions/workflows/codeql.yml)
 [![DCO](https://github.com/NullSablex/pawn-crypto/actions/workflows/contributions.yml/badge.svg?event=pull_request)](DCO)
 [![CLA](https://img.shields.io/badge/CLA-required-blue)](CLA.md)

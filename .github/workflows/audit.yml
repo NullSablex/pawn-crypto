@@ -1,9 +1,9 @@
 name: Dependency audit
 
+# Reusable: called by ci.yml when a lockfile changes; also runs weekly, since
+# new advisories appear without any change here.
 on:
-  push:
-    branches: [master]
-  pull_request:
+  workflow_call:
   schedule:
     - cron: '41 5 * * 1'
   workflow_dispatch:

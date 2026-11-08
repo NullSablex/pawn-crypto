@@ -61,8 +61,8 @@ The checker recognizes Dependabot's exact author identity with its standard
 alias allowance, not a sign-off exemption; human co-authors still need their own
 sign-offs, and other bot identities are not exempted.
 
-Configure protection for `master` in the repository settings, using the exact
-job names declared in the workflows as required checks. Code scanning and code
+Configure protection for `master` in the repository settings. The required
+status checks are `CI` and `DCO and CLA`; see [CI](#ci). Code scanning and code
 quality rules require the corresponding GitHub features. In a private repository,
 enable CodeQL only when available and set `ENABLE_CODEQL=true` so its required
 checks run.
@@ -141,14 +141,26 @@ see [Releases](#releases).
 
 ## CI
 
-GitHub Actions checks Linux GNU and Windows MSVC builds, unit tests, Clippy,
-formatting, generated includes, Pawn encoding and dependency licenses. Pull
-requests also check DCO sign-offs for commit authors and co-authors. A separate
-workflow runs RustSec audits on changes and weekly. The docs workflow checks
-the generated API reference and builds Zensical in strict mode with link
-validation. Successful builds on `master` deploy to GitHub Pages; PRs only
-validate the documentation. Dependabot tracks Cargo dependencies in the plugin and xtask,
-GitHub Actions and the pinned Zensical package.
+`ci.yml` is the single entry point for pushes and pull requests. Its first job
+maps the diff to the checks it can affect and skips the rest:
+
+| Check | Runs when these change |
+| --- | --- |
+| Rust builds, tests, Clippy, licenses (`rust.yml`) | `src/`, `build.rs`, `Cargo.*`, `.cargo/`, `rust-toolchain.toml`, `about.*`, `include/crypto.inc.in` |
+| Rust tooling | `xtask/` |
+| Pawn sources | `include/`, `examples/`, `tests/pawn/`, `src/lib.rs`, `src/natives/`, `Cargo.toml`, `xtask/` |
+| Docs and Pages (`docs.yml`) | `docs/`, `zensical.toml`, `requirements-docs.txt`, `include/`, `xtask/` |
+| RustSec audit (`audit.yml`) | `Cargo.lock`, `xtask/Cargo.lock` |
+| CodeQL (`codeql.yml`) | anything the Rust or tooling checks cover |
+
+Changes under `.github/workflows/` or `.github/codeql/` run everything; a manual
+run does too. Root Markdown, `LICENSE`, `DCO`, `CLA.md`, `scripts/` and other
+repository metadata trigger no checks. The final `CI` job fails if any selected
+check failed, so it is the one required build status. `DCO and CLA`
+(`contributions.yml`) runs on every pull request regardless of paths. The audit
+and CodeQL also run weekly; Scorecard runs weekly and on protection changes.
+Dependabot opens separate PRs for plugin crates, xtask crates, GitHub Actions
+and the Zensical package.
 
 Documentation source lives in `docs/`; `zensical.toml` defines navigation and
 the theme. Edit native

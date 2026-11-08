@@ -1,9 +1,7 @@
 name: Rust
 
+# Reusable build: called by ci.yml (when Rust inputs change) and release.yml.
 on:
-  push:
-    branches: [master]
-  pull_request:
   workflow_dispatch:
   workflow_call:
     inputs:
@@ -14,10 +12,6 @@ on:
 
 permissions:
   contents: read
-
-concurrency:
-  group: rust-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
 
 env:
   CARGO_TERM_COLOR: always

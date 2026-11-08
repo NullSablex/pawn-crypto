@@ -1,17 +1,13 @@
 name: Docs
 
+# Reusable: called by ci.yml when documentation inputs change. Publishes to
+# GitHub Pages only for pushes to master (or a manual run on master).
 on:
-  push:
-    branches: [master]
-  pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
-
-concurrency:
-  group: docs-${{ github.ref }}
-  cancel-in-progress: true
 
 jobs:
   build:
@@ -30,11 +26,6 @@ jobs:
         run: cargo xtask gen-api --check
       - name: Build without warnings
         run: cargo xtask docs
-      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
-        with:
-          name: documentation-site
-          path: dist/docs/
-          if-no-files-found: error
       - name: Prepare GitHub Pages artifact
         if: github.event_name != 'pull_request' && github.ref == 'refs/heads/master'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

@@ -1,9 +1,9 @@
 name: CodeQL
 
+# Reusable: called by ci.yml when Rust or workflow sources change; the weekly
+# run keeps the master baseline current with new queries.
 on:
-  push:
-    branches: [master]
-  pull_request:
+  workflow_call:
   schedule:
     - cron: '27 4 * * 1'
   workflow_dispatch:

@@ -1,36 +1,59 @@
 version: 2
+
+# One entry per area, so each update PR only touches (and only triggers the CI
+# checks of) its own area: the plugin, the xtask tooling, the workflows and the
+# documentation generator.
 updates:
-  - package-ecosystem: pip
+  - package-ecosystem: cargo
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     commit-message:
-      prefix: chore(deps)
+      prefix: build(deps)
+    allow:
+      - dependency-type: all
+    groups:
+      plugin:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      plugin-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  - package-ecosystem: cargo
+    directory: /xtask
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: build(deps-xtask)
+    allow:
+      - dependency-type: all
+    groups:
+      xtask:
+        patterns: ["*"]
+        update-types: [minor, patch]
+      xtask-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
   - package-ecosystem: github-actions
     directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     commit-message:
-      prefix: chore(deps)
+      prefix: ci(deps)
     groups:
       actions:
         patterns: ["*"]
         update-types: [minor, patch]
-  - package-ecosystem: cargo
-    directories: [/, /xtask]
+
+  - package-ecosystem: pip
+    directory: /
     schedule:
       interval: weekly
     open-pull-requests-limit: 5
     commit-message:
-      prefix: chore(deps)
-    allow:
-      - dependency-type: all
-    groups:
-      cargo:
-        patterns: ["*"]
-        update-types: [minor, patch]
-      cargo-security:
-        applies-to: security-updates
-        patterns: ["*"]
+      prefix: docs(deps)
