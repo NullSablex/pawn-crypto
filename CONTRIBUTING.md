@@ -56,6 +56,11 @@ need provenance/license review and valid commit sign-offs; a bot cannot grant
 rights on behalf of upstream authors. Repository branch protection must require
 `DCO and CLA` check and a maintainer review to enforce these gates on GitHub.
 
+The checker recognizes Dependabot's exact author identity with its standard
+`Signed-off-by: dependabot[bot] <support@github.com>` trailer. This is an email
+alias allowance, not a sign-off exemption; human co-authors still need their own
+sign-offs, and other bot identities are not exempted.
+
 Configure protection for `master` in the repository settings, using the exact
 job names declared in the workflows as required checks. Code scanning and code
 quality rules require the corresponding GitHub features. In a private repository,

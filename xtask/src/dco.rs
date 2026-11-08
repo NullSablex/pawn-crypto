@@ -35,7 +35,13 @@ fn check(author: &str, signoffs: &str, coauthors: &str) -> Result<()> {
             .map(str::trim)
             .filter(|identity| !identity.is_empty()),
     ) {
-        if !valid_identity(identity) || !signoffs.contains(&identity) {
+        // Dependabot's GitHub-authored commits use its noreply address for
+        // authorship and support@github.com for the DCO trailer. Require the
+        // exact known pair rather than exempting bot commits from sign-off.
+        let signed = signoffs.contains(&identity)
+            || (identity == "dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>"
+                && signoffs.contains(&"dependabot[bot] <support@github.com>"));
+        if !valid_identity(identity) || !signed {
             return Err("missing or invalid author/co-author Signed-off-by trailer".into());
         }
     }
@@ -116,5 +122,26 @@ mod tests {
         ] {
             assert!(check(identity, identity, "").is_err());
         }
+    }
+
+    #[test]
+    fn accepts_dependabots_known_signoff_without_exempting_bots() {
+        let bot = "dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>";
+        let signoff = "dependabot[bot] <support@github.com>";
+        assert!(check(bot, signoff, "").is_ok());
+        assert!(check(bot, bot, "").is_ok());
+        assert!(check(bot, "", "").is_err());
+        assert!(check(bot, "dependabot[bot] <other@example.org>", "").is_err());
+        assert!(check(bot, signoff, COAUTHOR).is_err());
+        assert!(check(bot, &format!("{signoff}\n{COAUTHOR}"), COAUTHOR).is_ok());
+    }
+
+    #[test]
+    fn does_not_accept_dependabots_signoff_for_other_authors() {
+        let signoff = "dependabot[bot] <support@github.com>";
+        assert!(check(AUTHOR, signoff, "").is_err());
+        assert!(check("Other Bot <bot@example.org>", signoff, "").is_err());
+        assert!(check("dependabot[bot] <other@example.org>", signoff, "").is_err());
+        assert!(check("Contributor <support@github.com>", signoff, "").is_err());
     }
 }
