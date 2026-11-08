@@ -23,7 +23,7 @@ jobs:
         with:
           persist-credentials: false
       - run: rustup show
-      - uses: taiki-e/install-action@dfae9bf3d6f6c6f20ef4ebb3486c01a51341ff12 # v2.87.18
+      - uses: taiki-e/install-action@c509219cf42fba86913069efd0ade2458c59337b # v2.90.1
         with:
           tool: mdbook@0.5.4
       - name: Check committed native reference
