@@ -16,7 +16,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: false
-      - run: rustup show
+      - run: rustup toolchain install
       - name: Check commit authors and co-authors
         env:
           DCO_BASE: ${{ github.event.pull_request.base.sha }}

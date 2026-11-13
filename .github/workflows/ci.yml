@@ -58,20 +58,23 @@ jobs:
             files=''
           fi
           printf 'Changed files:\n%s\n' "${files:-(full run)}"
-          # CI definitions affect every check, so they run everything.
-          if grep -qE '^\.github/(workflows|codeql)/' <<< "$files"; then all=true; fi
+          # ci.yml decides what runs, so a change to it runs everything. Each
+          # reusable workflow only triggers its own check (see the patterns
+          # below), and any workflow triggers CodeQL, which analyzes Actions.
+          if grep -qE '^\.github/workflows/ci\.yml$' <<< "$files"; then all=true; fi
           match() {
             if [ "$all" = true ] || grep -qE "$1" <<< "$files"; then echo true; else echo false; fi
           }
-          rust=$(match '^(src/|build\.rs$|Cargo\.(toml|lock)$|\.cargo/|rust-toolchain\.toml$|about\.(toml|hbs)$|include/crypto\.inc\.in$)')
+          rust=$(match '(^(src/|build\.rs$|Cargo\.(toml|lock)$|\.cargo/|rust-toolchain\.toml$|about\.(toml|hbs)$|include/crypto\.inc\.in$)|^\.github/workflows/rust\.yml$)')
           xtask=$(match '^xtask/')
+          workflows=$(match '^\.github/(workflows/|codeql/)')
           {
             echo "rust=$rust"
             echo "xtask=$xtask"
             echo "pawn=$(match '^(include/|examples/|tests/pawn/|src/lib\.rs$|src/natives/|Cargo\.toml$|xtask/)')"
-            echo "docs=$(match '^(docs/|zensical\.toml$|requirements-docs\.txt$|include/|xtask/)')"
-            echo "audit=$(match '^(xtask/)?Cargo\.lock$')"
-            if [ "$rust" = true ] || [ "$xtask" = true ] || [ "$all" = true ]; then
+            echo "docs=$(match '(^(docs/|zensical\.toml$|requirements-docs\.txt$|include/|xtask/)|^\.github/workflows/docs\.yml$)')"
+            echo "audit=$(match '(^(xtask/)?Cargo\.lock$|^\.github/workflows/audit\.yml$)')"
+            if [ "$rust" = true ] || [ "$xtask" = true ] || [ "$workflows" = true ] || [ "$all" = true ]; then
               echo codeql=true
             else
               echo codeql=false
@@ -94,7 +97,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: rustup show
+      - run: rustup toolchain install
       - run: cargo fmt --manifest-path xtask/Cargo.toml -- --check
       - run: cargo test --locked --manifest-path xtask/Cargo.toml
       - run: cargo clippy --locked --manifest-path xtask/Cargo.toml --all-targets -- -D warnings
@@ -109,7 +112,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - run: rustup show
+      - run: rustup toolchain install
       - run: cargo xtask check-pawn --github
 
   docs:
